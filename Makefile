@@ -4,7 +4,7 @@
 # Each target prefers `uv run …` so commands work without manually activating
 # the venv. `uv run` syncs dependencies on demand.
 
-.PHONY: help install lint fmt typecheck test ingest ui clean
+.PHONY: help install lint fmt typecheck test ingest producer consumer kafka-up kafka-down ui clean
 
 help:  ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} /^[a-zA-Z_-]+:.*##/ { printf "  %-12s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -35,8 +35,20 @@ test:  ## Run pytest with coverage (skipped if tests/ has no test files yet)
 
 # --- Placeholders for v0.1 MVP slices (filled in as each slice lands) ---
 
-ingest:  ## Run the RSS ingestion + indexing pipeline once
-	uv run python -m marketpulse.ingestion
+ingest:  ## Run the RSS ingestion + indexing pipeline once (no Kafka)
+	uv run python -m marketpulse.ingestion --mode once
+
+producer:  ## Start the Kafka RSS producer (polls every 5 min); requires make kafka-up first
+	uv run python -m marketpulse.ingestion --mode producer
+
+consumer:  ## Start the Kafka consumer (embeds + upserts to ChromaDB); requires make kafka-up first
+	uv run python -m marketpulse.ingestion --mode consumer
+
+kafka-up:  ## Start Kafka (Docker) in the background
+	docker compose -f docker/docker-compose.yml up -d
+
+kafka-down:  ## Stop and remove Kafka containers
+	docker compose -f docker/docker-compose.yml down
 
 query:  ## Ad-hoc retrieval query (usage: make query Q="your question")
 	@if [ -z "$(Q)" ]; then echo 'usage: make query Q="your question"'; exit 1; fi

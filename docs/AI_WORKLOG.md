@@ -13,6 +13,14 @@ Format:
 
 ---
 
+## 2026-05-28 — v0.2 Kafka streaming ingestion pipeline
+
+**What changed:** Added async Kafka producer (5-min RSS polling) and consumer (embed + ChromaDB upsert). `make ingest` still works one-shot. `make kafka-up && make producer` / `make consumer` runs the streaming pipeline. Docker Compose runs bitnami/kafka in KRaft mode (no Zookeeper).
+**Files touched:** `src/marketpulse/ingestion/producer.py`, `consumer.py`, `pipeline.py`, `__main__.py`, `docker/docker-compose.yml`, `Makefile`, `tests/test_pipeline.py`
+**Decisions made:** Producer deduplicates against ChromaDB on startup (seen-set). Consumer is idempotent via upsert. KRaft mode chosen (no Zookeeper needed for single-node local dev).
+
+---
+
 ## 2026-05-28 — v0.2 retrieval: MMR re-ranking + source credibility
 
 **What changed:** Replaced naive top-k sort with MMR re-ranking (λ=0.7) over a 4× candidate pool; added source credibility as a third blend weight (0.60·cosine + 0.25·recency + 0.15·credibility). Public `search()` API unchanged.
