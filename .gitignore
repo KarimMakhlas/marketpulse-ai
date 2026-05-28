@@ -1,0 +1,48 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+
+# --- Virtual env (uv-managed) ---
+.venv/
+
+# --- Tool caches ---
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# --- macOS ---
+.DS_Store
+
+# --- Editor / IDE ---
+.idea/
+.vscode/
+*.swp
+
+# --- Secrets ---
+.env
+.env.local
+
+# --- App data (ChromaDB lives here per MVP scope) ---
+data/
+
+# --- Local notes (not committed) ---
+NOTES.local.md
+
+# --- Local tooling / private drafts ---
+.claude/
+.agents/
+skills-lock.json
+CLAUDE.md
+MarketPulseAI-TechSpec.md
+docs/API_CONTRACT.md
+docs/ARCHITECTURE.md
+docs/DECISIONS.md
+docs/PROJECT_BRIEF.md
+docs/ROADMAP.md
+docs/TODO.md
