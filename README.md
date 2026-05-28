@@ -7,6 +7,8 @@
 **Status:** v0.1 MVP — feature-complete. See [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md)
 for what's in scope and what's deliberately deferred to v0.2+.
 
+![MarketPulse AI — query, streamed answer with inline citations, and ranked sources](docs/screenshots/image1.png)
+
 ---
 
 ## What it does
