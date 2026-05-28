@@ -35,6 +35,9 @@ data/
 NOTES.local.md
 CLAUDE.local.md
 
+# --- Brainstorming / visual companion sessions ---
+.superpowers/
+
 # --- Local tooling / private drafts ---
 .claude/
 .agents/

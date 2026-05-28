@@ -18,6 +18,7 @@ def _chunk(i: int, text: str = "body text") -> RetrievedChunk:
         published_at=datetime(2026, 5, 27, tzinfo=UTC),
         similarity=0.5,
         recency=0.5,
+        credibility=0.85,
         score=0.5,
     )
 
