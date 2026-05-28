@@ -33,6 +33,7 @@ data/
 
 # --- Local notes (not committed) ---
 NOTES.local.md
+CLAUDE.local.md
 
 # --- Local tooling / private drafts ---
 .claude/
