@@ -12,9 +12,9 @@ class GraphState(TypedDict):
     query: str
     k: int
     grade_chunks: list[RetrievedChunk]  # broader pool used only for grading
-    chunks: list[RetrievedChunk]        # top-k chunks used in citations + prompt
+    chunks: list[RetrievedChunk]  # top-k chunks used in citations + prompt
     citations: list[Citation]
     doc_grade: Literal["sufficient", "insufficient", ""]
-    prompt: str          # formatted synthesis prompt, set by build_prompt node
+    prompt: str  # formatted synthesis prompt, set by build_prompt node
     refused: bool
     refusal_reason: str

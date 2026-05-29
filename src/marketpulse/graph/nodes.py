@@ -11,6 +11,7 @@ import logging
 from typing import Any
 
 from ..llm.provider import LLMProvider
+from ..observability import observe as _lf_observe
 from ..retrieval.retriever import RetrievedChunk, search
 from ..synthesis.answer import _citation_from_chunk
 from ..synthesis.prompts import build_grade_docs_prompt, build_prompt
@@ -24,19 +25,6 @@ _REFUSAL_MESSAGE = (
     "The indexed sources do not contain sufficient information to answer this question. "
     "Try re-running `make ingest` to refresh the index, or rephrase your question."
 )
-
-# Langfuse @observe is a transparent no-op when credentials are absent.
-# The decorator moved from `langfuse.decorators` (3.x) to top-level `langfuse` (4.x);
-# try both so the import works against either SDK generation.
-try:
-    from langfuse import observe as _lf_observe
-except ImportError:
-    try:
-        from langfuse.decorators import observe as _lf_observe  # type: ignore[no-redef]
-    except ImportError:
-
-        def _lf_observe(func: Any = None, **_: Any) -> Any:
-            return func if func is not None else (lambda f: f)
 
 
 def retrieve_node(state: GraphState, *, provider: LLMProvider) -> dict[str, Any]:  # noqa: ARG001

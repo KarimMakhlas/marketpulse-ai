@@ -52,6 +52,49 @@ v0.1 is done when **all four** are true:
 
 ---
 
+## Milestone status (updated 2026-05-29)
+
+v0.1 is the contract above; v0.2 and v0.3 have since shipped. The original "Out of scope" table is the deferral ladder — this section records which rungs are now done. See `docs/AI_WORKLOG.md` for per-session detail.
+
+### v0.2 — done
+
+1. **Streaming ingestion** — async Kafka producer (5-min RSS polling) + consumer (embed + upsert), Docker Compose Kafka in KRaft mode. One-shot `make ingest` still works.
+2. **More sources** — 7 total: FT, MarketWatch, Yahoo, CNBC, Guardian (RSS) + SEC EDGAR (EFTS JSON API) + optional NewsAPI. ~163 articles/run.
+3. **MMR re-ranking** — λ=0.7 over a 4× candidate pool.
+4. **Source-credibility weighting** — retriever blend is `0.60·cosine + 0.25·recency + 0.15·credibility`.
+5. **Postgres audit store** — `articles` + `query_log` tables; no-ops when `DATABASE_URL` unset.
+
+**v0.2 done criteria:** all of the above run without breaking the v0.1 done criteria; `make ingest` remains idempotent; the tool stays fully usable with no Kafka and no Postgres.
+
+### v0.3 — done
+
+1. **LangGraph Self-RAG** — StateGraph: retrieve → grade_docs → route → build_prompt|refuse. Insufficient sources hit a refusal branch.
+2. **Doc grading** — synchronous `provider.generate()` asks the LLM whether retrieved docs are relevant; grade stored in `query_log`.
+3. **Langfuse observability** — `@observe()` on grader nodes; transparent no-op without credentials.
+4. **RAGAS eval** — `scripts/evaluate.py` (`make eval`), online eval, no ground truth.
+5. **`alerts` table** — added to the Postgres store.
+
+**v0.3 done criteria:** a no-relevant-content question routes to the refusal branch (no fabricated citation); streaming UX preserved (graph runs sync for grading, streaming happens outside the graph); Langfuse/Postgres absence never breaks the local flow.
+
+> **Quota caveat (overrides Decision #1):** `gemini-flash-latest` now routes to `gemini-3.5-flash` at **20 req/day** on the free tier, not the 1500/day that the older `gemini-1.5-flash` allowed. A single full RAGAS run can exhaust the day's budget — treat `make eval` as roughly one-shot per day.
+
+### v0.4 — done
+
+1. **FastAPI app** (`src/marketpulse/api/`) — `GET /health`, `POST /query` (JSON), `WS /query/stream` (token streaming). All LLM access via the injected `LLMProvider`.
+2. **JWT/OAuth2 auth** — `users` table; `POST /auth/register`, `POST /auth/token` (password grant). bcrypt hashing + PyJWT (`api/security.py`). Protected endpoints via `get_current_user`; WebSocket auth via `?token=`.
+3. **Rate limiting** — slowapi on the auth + query routes, backed by Redis when `REDIS_URL` is set, in-process memory otherwise.
+4. **Alembic migrations** — `migrations/` with `0001_initial_schema` covering articles, query_log, alerts, users. `make migrate`. `ensure_schema()` retained for zero-setup local dev.
+5. **Docker** — `Dockerfile` (uv-based API image) + root `docker-compose.yml` full stack (API + Postgres + Redis + Kafka). `make stack-up`.
+6. **CI** — `.github/workflows/ci.yml`: ruff check + format check + mypy --strict + pytest + offline Alembic check.
+
+**v0.4 done criteria:** `make api` serves `/health` 200 and Swagger at `/docs`; register→token→`/query` returns a cited answer; `/query` is 401 without a valid token; rate limiting returns 429 past the window; `alembic upgrade head --sql` emits all four tables; the 105-test suite + lint + types are green in CI. All new services degrade gracefully when absent (no Redis → in-memory limiter; no `DATABASE_URL` → auth returns 503, audit no-ops).
+
+### Still deferred (post-v0.4)
+
+**Hetzner + Cloudflare deploy** is scripted/documented but executed by the user (needs their accounts — not run from this repo). Also still open: DeepEval suite, LangGraph `PostgresSaver` (currently `MemorySaver`), Reddit/Twitter scrapers, refresh-token rotation / revocation, per-user quotas.
+
+---
+
 ## Time budget
 
 ~2 weekends, ~15–20 hours total:

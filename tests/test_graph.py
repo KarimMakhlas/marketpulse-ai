@@ -13,6 +13,7 @@ from marketpulse.synthesis.answer import AnswerStream, _citation_from_chunk
 # Helpers / fixtures
 # ---------------------------------------------------------------------------
 
+
 def _make_chunk(score: float = 0.9, source: str = "ft") -> RetrievedChunk:
     return RetrievedChunk(
         text="Markets rose on strong earnings.",
@@ -30,7 +31,9 @@ def _make_chunk(score: float = 0.9, source: str = "ft") -> RetrievedChunk:
 class FakeLLMProvider:
     """Minimal fake provider — generate() returns a configurable string."""
 
-    def __init__(self, grade_response: str = "SUFFICIENT", stream_text: str = "Answer text.") -> None:
+    def __init__(
+        self, grade_response: str = "SUFFICIENT", stream_text: str = "Answer text."
+    ) -> None:
         self._grade_response = grade_response
         self._stream_text = stream_text
 
@@ -44,6 +47,7 @@ class FakeLLMProvider:
 # ---------------------------------------------------------------------------
 # _citation_from_chunk
 # ---------------------------------------------------------------------------
+
 
 def test_citation_from_chunk_sets_marker() -> None:
     chunk = _make_chunk()
@@ -73,6 +77,7 @@ def test_citation_from_chunk_excerpt_truncated() -> None:
 # answer() — mocking search() and provider
 # ---------------------------------------------------------------------------
 
+
 def _mock_search(chunks: list[RetrievedChunk]):  # type: ignore[no-untyped-def]
     return patch("marketpulse.graph.nodes.search", return_value=chunks)
 
@@ -83,6 +88,7 @@ def test_answer_returns_stream_when_sufficient() -> None:
 
     with _mock_search(chunks):
         from marketpulse.synthesis.answer import answer
+
         result = answer("What is the market doing?", provider=provider, k=1)
 
     assert isinstance(result, AnswerStream)
@@ -97,6 +103,7 @@ def test_answer_refuses_when_insufficient() -> None:
 
     with _mock_search(chunks):
         from marketpulse.synthesis.answer import answer
+
         result = answer("What is the velocity of a swallow?", provider=provider, k=1)
 
     assert result.refused
@@ -110,6 +117,7 @@ def test_answer_returns_empty_index_message_when_no_chunks() -> None:
 
     with _mock_search([]):
         from marketpulse.synthesis.answer import answer
+
         result = answer("any query", provider=provider, k=5)
 
     assert not result.refused
@@ -124,6 +132,7 @@ def test_answer_streams_tokens_when_sufficient() -> None:
 
     with _mock_search(chunks):
         from marketpulse.synthesis.answer import answer
+
         result = answer("earnings news?", provider=provider, k=1)
 
     tokens = list(result.tokens)
@@ -133,6 +142,7 @@ def test_answer_streams_tokens_when_sufficient() -> None:
 # ---------------------------------------------------------------------------
 # grade_docs_node
 # ---------------------------------------------------------------------------
+
 
 def test_grade_docs_node_sufficient() -> None:
     from marketpulse.graph.nodes import grade_docs_node
@@ -195,6 +205,7 @@ def test_grade_docs_node_empty_chunks_returns_insufficient() -> None:
 # ---------------------------------------------------------------------------
 # route_after_grading
 # ---------------------------------------------------------------------------
+
 
 def test_route_sufficient() -> None:
     from marketpulse.graph.nodes import route_after_grading

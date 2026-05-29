@@ -1,5 +1,27 @@
-"""Postgres persistence layer — articles table + query audit log."""
+"""Postgres persistence layer — articles, query audit log, alerts, and users."""
 
-from .client import ensure_schema, log_alert, log_query, upsert_article
+from .client import (
+    DBUnavailableError,
+    UserAlreadyExistsError,
+    UserRecord,
+    create_user,
+    db_available,
+    ensure_schema,
+    get_user,
+    log_alert,
+    log_query,
+    upsert_article,
+)
 
-__all__ = ["ensure_schema", "log_alert", "log_query", "upsert_article"]
+__all__ = [
+    "DBUnavailableError",
+    "UserAlreadyExistsError",
+    "UserRecord",
+    "create_user",
+    "db_available",
+    "ensure_schema",
+    "get_user",
+    "log_alert",
+    "log_query",
+    "upsert_article",
+]

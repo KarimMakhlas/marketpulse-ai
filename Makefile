@@ -4,7 +4,7 @@
 # Each target prefers `uv run …` so commands work without manually activating
 # the venv. `uv run` syncs dependencies on demand.
 
-.PHONY: help install lint fmt typecheck test ingest producer consumer kafka-up kafka-down ui eval clean
+.PHONY: help install lint fmt typecheck test ingest producer consumer kafka-up kafka-down ui eval api migrate stack-up stack-down clean
 
 help:  ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} /^[a-zA-Z_-]+:.*##/ { printf "  %-12s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -63,6 +63,20 @@ ui:  ## Launch the Streamlit demo UI at http://localhost:8501
 
 eval:  ## Run RAGAS evaluation against a small hardcoded question set (requires GEMINI_API_KEY)
 	uv run python scripts/evaluate.py
+
+# --- v0.4: API, migrations, full Docker stack ---
+
+api:  ## Run the FastAPI server at http://localhost:8000 (docs at /docs)
+	uv run python -m marketpulse.api
+
+migrate:  ## Apply Alembic migrations to DATABASE_URL (alembic upgrade head)
+	uv run alembic upgrade head
+
+stack-up:  ## Build + start the full stack (API + Postgres + Redis + Kafka)
+	docker compose up -d --build
+
+stack-down:  ## Stop the full stack (add ARGS=-v to also wipe volumes)
+	docker compose down $(ARGS)
 
 clean:  ## Remove caches and the virtual env
 	rm -rf .venv .ruff_cache .mypy_cache .pytest_cache .coverage htmlcov coverage.xml

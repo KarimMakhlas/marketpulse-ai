@@ -68,9 +68,7 @@ def build_grade_docs_prompt(query: str, chunks: list[RetrievedChunk]) -> str:
     )
 
 
-def build_grade_answer_prompt(
-    query: str, chunks: list[RetrievedChunk], answer: str
-) -> str:
+def build_grade_answer_prompt(query: str, chunks: list[RetrievedChunk], answer: str) -> str:
     return GRADE_ANSWER_TEMPLATE.format(
         query=query,
         sources_block=format_sources(chunks),

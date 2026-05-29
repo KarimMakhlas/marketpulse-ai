@@ -27,7 +27,7 @@ SOURCE_CREDIBILITY: dict[str, float] = {
     "guardian": 0.90,
     "cnbc": 0.85,
     "marketwatch": 0.85,
-    "sec_8k": 0.95,   # SEC primary filings — authoritative but dense
+    "sec_8k": 0.95,  # SEC primary filings — authoritative but dense
     "sec_10q": 0.95,
     "yahoo": 0.80,
     "newsapi": 0.75,

@@ -1,0 +1,329 @@
+/* ============================================================
+   MarketPulse AI — Design Tokens
+   Single source of truth: color, type, spacing, radius, shadow, motion.
+   Dark mode is the default and only theme.
+   ============================================================ */
+
+/* ---------- Fonts ---------- */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/Geist-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/Geist-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./fonts/Geist-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./fonts/Geist-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/GeistMono-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/GeistMono-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./fonts/GeistMono-SemiBold.woff2") format("woff2");
+}
+
+:root {
+  /* ============================================================
+     COLOR — backgrounds
+     A near-black ramp with a faint cool tint. Never pure #000.
+     ============================================================ */
+  --bg-base:           #07090C;  /* page background */
+  --bg-elevated:       #0D1117;  /* nav rail, header */
+  --bg-card:           #11151B;  /* default card */
+  --bg-card-hover:     #161B24;  /* card hover, table row hover */
+  --bg-inset:          #0A0D12;  /* inset wells inside cards (e.g. code blocks) */
+  --bg-scrim:          rgba(7, 9, 12, 0.7);   /* modal scrim, with backdrop-blur */
+  --bg-overlay:        rgba(7, 9, 12, 0.9);   /* sticky header — no blur */
+
+  /* ============================================================
+     COLOR — foregrounds
+     Warm off-white stepping to muted neutral.
+     ============================================================ */
+  --fg-primary:        #E8EAED;  /* primary text, KPI numbers */
+  --fg-secondary:      #9CA3AF;  /* secondary text, labels */
+  --fg-tertiary:       #6B7280;  /* tertiary, axis labels, captions */
+  --fg-muted:          #5B6473;  /* placeholder, disabled */
+  --fg-inverse:        #07090C;  /* on light surfaces (rare) */
+
+  /* ============================================================
+     COLOR — borders
+     ============================================================ */
+  --border-subtle:     #1C2230;  /* default card border */
+  --border-default:    #2A3142;  /* focused, selected, separator */
+  --border-strong:     #3A4356;  /* divider on light-ish surfaces */
+  --border-row:        rgba(255, 255, 255, 0.04);  /* table row separator (inset) */
+
+  /* ============================================================
+     COLOR — semantic accents
+     Signal green / caution amber / loss red mirror financial conventions.
+     Violet for AI/LLMOps, sky blue for data/sources. Load-bearing — do not reassign.
+     ============================================================ */
+  --accent-signal:     #00E08F;  /* up, healthy, kept, success */
+  --accent-signal-bg:  rgba(0, 224, 143, 0.10);
+  --accent-signal-ring:rgba(0, 224, 143, 0.30);
+
+  --accent-caution:    #FFB020;  /* warning, degraded, stale */
+  --accent-caution-bg: rgba(255, 176, 32, 0.10);
+  --accent-caution-ring:rgba(255, 176, 32, 0.30);
+
+  --accent-loss:       #FF4D6D;  /* down, critical, rejected, hallucination */
+  --accent-loss-bg:    rgba(255, 77, 109, 0.10);
+  --accent-loss-ring:  rgba(255, 77, 109, 0.30);
+
+  --accent-ai:         #7C5CFF;  /* AI / LLMOps — agents, RAGAS, trace IDs */
+  --accent-ai-bg:      rgba(124, 92, 255, 0.10);
+  --accent-ai-ring:    rgba(124, 92, 255, 0.30);
+  --accent-ai-glow:    rgba(124, 92, 255, 0.25);
+
+  --accent-info:       #4DA3FF;  /* data / sources / Kafka */
+  --accent-info-bg:    rgba(77, 163, 255, 0.10);
+  --accent-info-ring:  rgba(77, 163, 255, 0.30);
+
+  /* Brand gradient — only for wordmark stroke, agent badge ring, active progress */
+  --gradient-brand:    linear-gradient(135deg, #7C5CFF 0%, #4DA3FF 100%);
+
+  /* ============================================================
+     TYPOGRAPHY
+     Geist Sans for UI, Geist Mono for numerics + traces + code.
+     ============================================================ */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  /* Scale (size / line-height) */
+  --text-display-size: 40px;    --text-display-lh: 44px;
+  --text-h1-size:      28px;    --text-h1-lh:      34px;
+  --text-h2-size:      20px;    --text-h2-lh:      28px;
+  --text-h3-size:      16px;    --text-h3-lh:      22px;
+  --text-body-size:    14px;    --text-body-lh:    22px;
+  --text-sm-size:      13px;    --text-sm-lh:      20px;
+  --text-xs-size:      12px;    --text-xs-lh:      16px;
+  --text-eyebrow-size: 11px;    --text-eyebrow-lh: 14px;
+
+  --text-mono-data-size:     14px;  --text-mono-data-lh:     20px;
+  --text-mono-display-size:  32px;  --text-mono-display-lh:  36px;
+  --text-mono-sm-size:       12px;  --text-mono-sm-lh:       16px;
+
+  /* Weights */
+  --w-regular: 400;
+  --w-medium:  500;
+  --w-semi:    600;
+  --w-bold:    700;
+
+  /* ============================================================
+     SPACING — 4px base grid
+     ============================================================ */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* ============================================================
+     RADIUS — sharp by default
+     ============================================================ */
+  --radius-0: 0;
+  --radius-1: 4px;
+  --radius-2: 6px;
+  --radius-3: 10px;
+  --radius-full: 999px;
+
+  /* ============================================================
+     SHADOW — almost invisible. Elevation via bg-color step.
+     ============================================================ */
+  --shadow-1: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset;
+  --shadow-2: 0 8px 24px -8px rgba(0, 0, 0, 0.4),
+              0 1px 0 0 rgba(255, 255, 255, 0.04) inset;
+  --shadow-3: 0 16px 48px -12px rgba(0, 0, 0, 0.6),
+              0 1px 0 0 rgba(255, 255, 255, 0.06) inset;
+  --shadow-glow-ai: 0 0 0 1px rgba(124, 92, 255, 0.4),
+                    0 0 24px -4px var(--accent-ai-glow);
+  --shadow-glow-signal: 0 0 0 1px var(--accent-signal-ring),
+                        0 0 16px -4px rgba(0, 224, 143, 0.25);
+
+  /* ============================================================
+     MOTION
+     ============================================================ */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in:  cubic-bezier(0.4, 0, 1, 1);
+  --dur-snap: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 400ms;
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  --rail-width: 240px;
+  --rail-narrow: 64px;
+  --rail-right: 360px;
+  --header-height: 56px;
+  --canvas-max: 1440px;
+}
+
+/* ============================================================
+   SEMANTIC TYPE CLASSES
+   ============================================================ */
+
+html, body {
+  background: var(--bg-base);
+  color: var(--fg-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-lh);
+  font-weight: var(--w-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
+}
+
+.display, h1.display {
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-lh);
+  font-weight: var(--w-semi);
+  letter-spacing: -0.02em;
+  color: var(--fg-primary);
+}
+
+h1, .h1 {
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-lh);
+  font-weight: var(--w-semi);
+  letter-spacing: -0.015em;
+  color: var(--fg-primary);
+  margin: 0;
+}
+
+h2, .h2 {
+  font-size: var(--text-h2-size);
+  line-height: var(--text-h2-lh);
+  font-weight: var(--w-semi);
+  letter-spacing: -0.01em;
+  color: var(--fg-primary);
+  margin: 0;
+}
+
+h3, .h3 {
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-lh);
+  font-weight: var(--w-semi);
+  letter-spacing: -0.005em;
+  color: var(--fg-primary);
+  margin: 0;
+}
+
+p, .body {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-lh);
+  font-weight: var(--w-regular);
+  color: var(--fg-primary);
+  margin: 0;
+}
+
+.text-sm   { font-size: var(--text-sm-size);   line-height: var(--text-sm-lh); }
+.text-xs   { font-size: var(--text-xs-size);   line-height: var(--text-xs-lh); }
+
+.eyebrow {
+  font-size: var(--text-eyebrow-size);
+  line-height: var(--text-eyebrow-lh);
+  font-weight: var(--w-semi);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-tertiary);
+}
+
+code, kbd, .mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "ss01", "cv01";
+  font-variant-numeric: tabular-nums;
+}
+
+.mono-data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-mono-data-size);
+  line-height: var(--text-mono-data-lh);
+  font-weight: var(--w-medium);
+  color: var(--fg-primary);
+  letter-spacing: 0;
+}
+
+.mono-display {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-mono-display-size);
+  line-height: var(--text-mono-display-lh);
+  font-weight: var(--w-medium);
+  color: var(--fg-primary);
+  letter-spacing: -0.01em;
+}
+
+.mono-sm {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-mono-sm-size);
+  line-height: var(--text-mono-sm-lh);
+  font-weight: var(--w-regular);
+  color: var(--fg-secondary);
+}
+
+.fg-secondary { color: var(--fg-secondary); }
+.fg-tertiary  { color: var(--fg-tertiary); }
+.fg-muted     { color: var(--fg-muted); }
+.fg-signal    { color: var(--accent-signal); }
+.fg-caution   { color: var(--accent-caution); }
+.fg-loss      { color: var(--accent-loss); }
+.fg-ai        { color: var(--accent-ai); }
+.fg-info      { color: var(--accent-info); }
+
+/* Tabular numbers utility — apply where numbers might change in place */
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* Selection */
+::selection {
+  background: var(--accent-ai-bg);
+  color: var(--fg-primary);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--accent-ai);
+  outline-offset: 1px;
+  border-radius: var(--radius-1);
+}

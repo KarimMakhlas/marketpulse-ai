@@ -16,7 +16,19 @@ from marketpulse.db import ensure_schema  # noqa: E402
 from marketpulse.llm.gemini import GeminiProvider  # noqa: E402
 from marketpulse.synthesis.answer import Citation, answer  # noqa: E402
 
-ensure_schema()
+
+@st.cache_resource
+def _init_schema() -> None:
+    """Run schema setup once per server process, not on every rerun.
+
+    Streamlit re-executes this script top-to-bottom on every interaction;
+    without caching, ensure_schema() would reopen a Postgres connection (and
+    re-log the 'DB unavailable' warning) on every keystroke-triggered rerun.
+    """
+    ensure_schema()
+
+
+_init_schema()
 
 EXAMPLE_QUERIES = [
     "What did the financial press report this week about the Federal Reserve?",
@@ -60,7 +72,7 @@ def main() -> None:
             label_visibility="collapsed",
         )
         col_btn, col_k = st.columns([1, 1])
-        submitted = col_btn.form_submit_button("Ask", type="primary", use_container_width=True)
+        submitted = col_btn.form_submit_button("Ask", type="primary", width="stretch")
         k = col_k.slider("k (sources)", min_value=1, max_value=10, value=5)
 
     if not submitted:
@@ -119,7 +131,7 @@ def main() -> None:
 
     # Relevance badge.
     if result.doc_grade == "sufficient":
-        st.success("Sources graded: relevant", icon="✓")
+        st.success("Sources graded: relevant", icon="✅")
 
     st.subheader("Answer")
     answer_slot = st.empty()

@@ -11,24 +11,12 @@ from typing import Any
 
 from ..db import log_alert, log_query
 from ..llm.provider import LLMProvider
+from ..observability import observe as _lf_observe
 from ..retrieval.retriever import DEFAULT_K, RetrievedChunk
 
 logger = logging.getLogger(__name__)
 
 EMPTY_INDEX_MESSAGE = "No indexed sources to answer from. Run `make ingest` first."
-
-# Langfuse @observe — transparent no-op when credentials are absent.
-# The decorator moved from `langfuse.decorators` (3.x) to top-level `langfuse` (4.x);
-# try both so the import works against either SDK generation.
-try:
-    from langfuse import observe as _lf_observe
-except ImportError:
-    try:
-        from langfuse.decorators import observe as _lf_observe  # type: ignore[no-redef]
-    except ImportError:
-
-        def _lf_observe(func: Any = None, **_: Any) -> Any:
-            return func if func is not None else (lambda f: f)
 
 
 @dataclass(frozen=True)
