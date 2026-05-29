@@ -13,6 +13,14 @@ Format:
 
 ---
 
+## 2026-05-29 — v0.2 Postgres integration (articles + query_log)
+
+**What changed:** Added `src/marketpulse/db/` module with psycopg2-backed `articles` and `query_log` tables. Ingestion writes article metadata to Postgres after each Chroma upsert; synthesis logs each query + chunk URLs before streaming. If `DATABASE_URL` is unset or Postgres is unreachable, all DB calls are silent no-ops so existing `make ingest` / `make ui` flows are unaffected.
+**Files touched:** `src/marketpulse/db/client.py`, `src/marketpulse/db/__init__.py`, `src/marketpulse/ingestion/indexer.py`, `src/marketpulse/ingestion/__main__.py`, `src/marketpulse/synthesis/answer.py`, `.env.example`, `tests/test_db.py`
+**Decisions made:** Graceful degradation (no-op when DB unavailable) keeps the tool usable without Postgres. Answer text not logged — requires buffering the stream, deferred. `asyncio.to_thread` not yet wired into Kafka consumer (consumer calls indexer which calls upsert_article synchronously — acceptable for now since consumer is the only async caller and the upsert is fast).
+
+---
+
 ## 2026-05-28 — v0.2 Kafka streaming ingestion pipeline
 
 **What changed:** Added async Kafka producer (5-min RSS polling) and consumer (embed + ChromaDB upsert). `make ingest` still works one-shot. `make kafka-up && make producer` / `make consumer` runs the streaming pipeline. Docker Compose runs bitnami/kafka in KRaft mode (no Zookeeper).

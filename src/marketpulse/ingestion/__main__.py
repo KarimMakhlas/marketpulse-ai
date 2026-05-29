@@ -38,6 +38,14 @@ def main() -> int:
     _setup_logging()
     log = logging.getLogger("marketpulse.ingestion")
 
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    from ..db import ensure_schema
+
+    ensure_schema()
+
     if args.mode == "once":
         from .indexer import run
 

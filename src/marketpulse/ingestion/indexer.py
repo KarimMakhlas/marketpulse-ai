@@ -8,6 +8,7 @@ from typing import Any
 
 import chromadb
 
+from ..db import upsert_article
 from .sources import FEEDS, RawArticle, content_hash, fetch_feed
 
 logger = logging.getLogger(__name__)
@@ -107,6 +108,16 @@ def upsert_chunks(article: RawArticle, chunks: list[str]) -> int:
         documents=chunks,
         metadatas=metadatas,
     )
+    try:
+        upsert_article(
+            url=article.url,
+            source=article.source,
+            title=article.title,
+            published_at=article.published_at,
+            content_hash=content_hash(article.url),
+        )
+    except Exception as exc:
+        logger.warning("db.upsert_article skipped for %r: %s", article.url, exc)
     return len(chunks)
 
 

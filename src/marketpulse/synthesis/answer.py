@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
 
+from ..db import log_query
 from ..llm.provider import LLMProvider
 from ..retrieval.retriever import DEFAULT_K, RetrievedChunk, search
 from .prompts import build_prompt
@@ -53,5 +54,6 @@ def answer(query: str, *, provider: LLMProvider, k: int = DEFAULT_K) -> AnswerSt
         return AnswerStream(citations=[], tokens=iter([EMPTY_INDEX_MESSAGE]))
 
     citations = [_citation_from_chunk(i, c) for i, c in enumerate(chunks, start=1)]
+    log_query(query, [c.url for c in chunks])
     prompt = build_prompt(query, chunks)
     return AnswerStream(citations=citations, tokens=provider.generate_stream(prompt))
