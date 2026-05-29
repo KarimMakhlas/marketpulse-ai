@@ -9,7 +9,7 @@ from typing import Any
 import chromadb
 
 from ..db import upsert_article
-from .sources import FEEDS, RawArticle, content_hash, fetch_feed
+from .sources import FEEDS, RawArticle, content_hash, fetch_edgar, fetch_feed, fetch_newsapi
 
 logger = logging.getLogger(__name__)
 
@@ -121,10 +121,24 @@ def upsert_chunks(article: RawArticle, chunks: list[str]) -> int:
     return len(chunks)
 
 
-def run() -> tuple[int, int]:
-    """Fetch all feeds, chunk, embed, upsert. Returns (articles, chunks)."""
+def _ingest_articles(articles: list[RawArticle]) -> tuple[int, int]:
+    """Chunk, embed, and upsert a list of articles. Returns (articles, chunks)."""
     total_articles = 0
     total_chunks = 0
+    for article in articles:
+        text = f"{article.title}. {article.body}".strip()
+        chunks = chunk_text(text)
+        n = upsert_chunks(article, chunks)
+        total_articles += 1
+        total_chunks += n
+    return total_articles, total_chunks
+
+
+def run() -> tuple[int, int]:
+    """Fetch all sources, chunk, embed, upsert. Returns (articles, chunks)."""
+    total_articles = 0
+    total_chunks = 0
+
     for source, url in FEEDS.items():
         logger.info("fetching feed %r", source)
         try:
@@ -133,10 +147,30 @@ def run() -> tuple[int, int]:
             logger.warning("failed to fetch %r: %s — skipping", source, e)
             continue
         logger.info("  %d articles from %r", len(articles), source)
-        for article in articles:
-            text = f"{article.title}. {article.body}".strip()
-            chunks = chunk_text(text)
-            n = upsert_chunks(article, chunks)
-            total_articles += 1
-            total_chunks += n
+        a, c = _ingest_articles(articles)
+        total_articles += a
+        total_chunks += c
+
+    for edgar_form in ("8-K", "10-Q"):
+        source_key = f"sec_{edgar_form.lower().replace('-', '')}"
+        logger.info("fetching EDGAR %s filings", edgar_form)
+        try:
+            edgar_articles = list(fetch_edgar(form_type=edgar_form))
+            logger.info("  %d articles from %r", len(edgar_articles), source_key)
+            a, c = _ingest_articles(edgar_articles)
+            total_articles += a
+            total_chunks += c
+        except Exception as e:
+            logger.warning("failed to fetch EDGAR %s: %s — skipping", edgar_form, e)
+
+    try:
+        newsapi_articles = list(fetch_newsapi())
+        if newsapi_articles:
+            logger.info("  %d articles from 'newsapi'", len(newsapi_articles))
+            a, c = _ingest_articles(newsapi_articles)
+            total_articles += a
+            total_chunks += c
+    except Exception as e:
+        logger.warning("failed to fetch newsapi: %s — skipping", e)
+
     return total_articles, total_chunks

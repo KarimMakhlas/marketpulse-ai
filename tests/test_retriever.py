@@ -58,15 +58,15 @@ def test_recency_score_clips_future_dates_to_one() -> None:
 
 
 def test_credibility_score_ft() -> None:
-    assert credibility_score("ft.com") == SOURCE_CREDIBILITY["ft.com"]
+    assert credibility_score("ft") == SOURCE_CREDIBILITY["ft"]
 
 
 def test_credibility_score_marketwatch() -> None:
-    assert credibility_score("marketwatch.com") == SOURCE_CREDIBILITY["marketwatch.com"]
+    assert credibility_score("marketwatch") == SOURCE_CREDIBILITY["marketwatch"]
 
 
 def test_credibility_score_ft_is_highest() -> None:
-    assert credibility_score("ft.com") >= credibility_score("marketwatch.com")
+    assert credibility_score("ft") >= credibility_score("marketwatch")
 
 
 def test_credibility_score_unknown_source_returns_default() -> None:
@@ -124,7 +124,7 @@ def test_dot_identical_unit_vectors_is_one() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _make_chunk(score: float, source: str = "ft.com") -> RetrievedChunk:
+def _make_chunk(score: float, source: str = "ft") -> RetrievedChunk:
     return RetrievedChunk(
         text="text",
         source=source,

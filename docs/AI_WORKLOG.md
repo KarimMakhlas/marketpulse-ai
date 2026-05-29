@@ -13,6 +13,14 @@ Format:
 
 ---
 
+## 2026-05-29 — v0.2 additional scrapers (Yahoo, CNBC, Guardian, SEC EDGAR, NewsAPI)
+
+**What changed:** Expanded ingestion from 2 to 7 sources. Added Yahoo Finance, CNBC, Guardian Business as free RSS feeds. Added SEC EDGAR 8-K/10-Q via the EFTS JSON API (httpx, no auth required). Added optional NewsAPI source (graceful no-op if NEWS_API_KEY unset). Fixed SOURCE_CREDIBILITY keys in retriever (were "ft.com"/"marketwatch.com", must match the source metadata key "ft"/"marketwatch"). Total ingestion now yields ~163 articles per run.
+**Files touched:** `src/marketpulse/ingestion/sources.py`, `src/marketpulse/ingestion/indexer.py`, `src/marketpulse/retrieval/retriever.py`, `tests/test_sources.py`, `tests/test_retriever.py`, `pyproject.toml`, `uv.lock`
+**Decisions made:** SEC EDGAR Atom feed URLs were malformed (feedparser bozo=mismatched tag) — replaced with EFTS JSON API. Source credibility key bug was a silent regression: all sources were falling back to DEFAULT_CREDIBILITY (0.70) because the dict used domain names instead of source keys.
+
+---
+
 ## 2026-05-29 — v0.2 Postgres integration (articles + query_log)
 
 **What changed:** Added `src/marketpulse/db/` module with psycopg2-backed `articles` and `query_log` tables. Ingestion writes article metadata to Postgres after each Chroma upsert; synthesis logs each query + chunk URLs before streaming. If `DATABASE_URL` is unset or Postgres is unreachable, all DB calls are silent no-ops so existing `make ingest` / `make ui` flows are unaffected.

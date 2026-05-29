@@ -21,10 +21,16 @@ RECENCY_DECAY_RATE = 0.1  # exp(-rate * age_days); ~0.5 at 7d, ~0.05 at 30d
 
 MMR_LAMBDA = 0.7  # 0 = max diversity, 1 = pure relevance
 
-# Credibility scores per source domain. Unknown sources fall back to DEFAULT.
+# Credibility scores keyed by the source name stored in article metadata.
 SOURCE_CREDIBILITY: dict[str, float] = {
-    "ft.com": 1.00,
-    "marketwatch.com": 0.85,
+    "ft": 1.00,
+    "guardian": 0.90,
+    "cnbc": 0.85,
+    "marketwatch": 0.85,
+    "sec_8k": 0.95,   # SEC primary filings — authoritative but dense
+    "sec_10q": 0.95,
+    "yahoo": 0.80,
+    "newsapi": 0.75,
 }
 DEFAULT_CREDIBILITY = 0.70
 
