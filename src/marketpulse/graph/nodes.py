@@ -58,14 +58,20 @@ def grade_docs_node(state: GraphState, *, provider: LLMProvider) -> dict[str, An
         return {"doc_grade": "insufficient", "refused": True, "refusal_reason": _REFUSAL_MESSAGE}
 
     prompt = build_grade_docs_prompt(state["query"], grade_chunks)
-    raw = provider.generate(prompt).strip().upper()
+    try:
+        raw = provider.generate(prompt).strip().upper()
+    except Exception as exc:
+        # Transient LLM errors (503, timeout) — fail-open so the query still gets answered.
+        logger.warning("grader LLM call failed (%s) — defaulting to sufficient", exc)
+        return {"doc_grade": "sufficient"}
+
     # Check INSUFFICIENT before SUFFICIENT — the latter is a substring of the former.
     if "INSUFFICIENT" in raw:
         grade = "insufficient"
     elif "SUFFICIENT" in raw:
         grade = "sufficient"
     else:
-        grade = "insufficient"  # default to safe/refuse on unexpected output
+        grade = "sufficient"  # default to pass on unexpected output
     logger.info("doc grade: %s (raw=%r)", grade, raw[:40])
     return {"doc_grade": grade}
 

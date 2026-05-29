@@ -81,7 +81,18 @@ def main() -> None:
         return
 
     with st.spinner("Checking source relevance…"):
-        result = answer(query, provider=provider, k=k)
+        try:
+            result = answer(query, provider=provider, k=k)
+        except Exception as exc:
+            msg = str(exc)
+            if "503" in msg or "UNAVAILABLE" in msg:
+                st.warning(
+                    "Gemini is temporarily overloaded (503). "
+                    "Wait a few seconds and try again."
+                )
+            else:
+                st.error(f"Unexpected error: {exc}")
+            return
 
     # Refusal path — Self-RAG grader found no relevant sources.
     if result.refused:
