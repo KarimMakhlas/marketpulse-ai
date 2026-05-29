@@ -73,6 +73,7 @@ def answer(query: str, *, provider: LLMProvider, k: int = DEFAULT_K) -> AnswerSt
     initial_state = {
         "query": query,
         "k": k,
+        "grade_chunks": [],
         "chunks": [],
         "citations": [],
         "doc_grade": "",

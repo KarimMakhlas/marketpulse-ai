@@ -18,6 +18,8 @@ from .state import GraphState
 
 logger = logging.getLogger(__name__)
 
+_GRADE_MIN_K = 5  # always grade at least this many docs regardless of user's k
+
 _REFUSAL_MESSAGE = (
     "The indexed sources do not contain sufficient information to answer this question. "
     "Try re-running `make ingest` to refresh the index, or rephrase your question."
@@ -32,20 +34,30 @@ except ImportError:
 
 
 def retrieve_node(state: GraphState, *, provider: LLMProvider) -> dict[str, Any]:  # noqa: ARG001
-    """Retrieve top-k chunks from Chroma and format citations."""
-    chunks: list[RetrievedChunk] = search(state["query"], k=state["k"])
+    """Retrieve chunks from Chroma.
+
+    Fetches max(k, _GRADE_MIN_K) candidates so the grader always sees a
+    reasonable breadth even when k=1. The final citations are still capped to k.
+    """
+    k = state["k"]
+    grade_k = max(k, _GRADE_MIN_K)
+    grade_chunks: list[RetrievedChunk] = search(state["query"], k=grade_k)
+    chunks = grade_chunks[:k]
     citations = [_citation_from_chunk(i, c) for i, c in enumerate(chunks, start=1)]
-    return {"chunks": chunks, "citations": citations}
+    return {"grade_chunks": grade_chunks, "chunks": chunks, "citations": citations}
 
 
 @_lf_observe  # type: ignore[untyped-decorator]
 def grade_docs_node(state: GraphState, *, provider: LLMProvider) -> dict[str, Any]:
-    """Ask the LLM whether the retrieved docs are sufficient to answer the query."""
-    chunks = state["chunks"]
-    if not chunks:
+    """Ask the LLM whether the retrieved docs are relevant to the query.
+
+    Grades the broader grade_chunks pool so k=1 UI settings don't over-trigger refusals.
+    """
+    grade_chunks = state.get("grade_chunks") or state["chunks"]
+    if not grade_chunks:
         return {"doc_grade": "insufficient", "refused": True, "refusal_reason": _REFUSAL_MESSAGE}
 
-    prompt = build_grade_docs_prompt(state["query"], chunks)
+    prompt = build_grade_docs_prompt(state["query"], grade_chunks)
     raw = provider.generate(prompt).strip().upper()
     # Check INSUFFICIENT before SUFFICIENT — the latter is a substring of the former.
     if "INSUFFICIENT" in raw:

@@ -35,14 +35,16 @@ def format_sources(chunks: list[RetrievedChunk]) -> str:
     return "\n\n".join(blocks)
 
 
-GRADE_DOCS_TEMPLATE = """You are grading document relevance.
+GRADE_DOCS_TEMPLATE = """You are grading document relevance for a financial news assistant.
 
 Query: {query}
 
 Retrieved document excerpts:
 {sources_block}
 
-Do these documents contain enough information to answer the query?
+Do any of these documents contain information that is relevant to the query topic?
+Answer SUFFICIENT if at least one document covers the topic, even partially.
+Answer INSUFFICIENT only if the documents are entirely unrelated to the query (e.g. a sports question in a financial news index).
 Reply with exactly one word: SUFFICIENT or INSUFFICIENT."""
 
 GRADE_ANSWER_TEMPLATE = """You are grading answer groundedness.

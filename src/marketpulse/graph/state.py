@@ -11,7 +11,8 @@ from ..synthesis.answer import Citation
 class GraphState(TypedDict):
     query: str
     k: int
-    chunks: list[RetrievedChunk]
+    grade_chunks: list[RetrievedChunk]  # broader pool used only for grading
+    chunks: list[RetrievedChunk]        # top-k chunks used in citations + prompt
     citations: list[Citation]
     doc_grade: Literal["sufficient", "insufficient", ""]
     prompt: str          # formatted synthesis prompt, set by build_prompt node
