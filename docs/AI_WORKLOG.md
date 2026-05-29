@@ -13,6 +13,14 @@ Format:
 
 ---
 
+## 2026-05-29 — v0.3 Self-RAG LangGraph pipeline + Langfuse + RAGAS eval
+
+**What changed:** Replaced direct retrieve→generate flow with a LangGraph StateGraph (retrieve → grade_docs → route → build_prompt|refuse). grade_docs uses a new synchronous `provider.generate()` method to ask the LLM if retrieved docs are relevant; insufficient sources trigger a refusal branch instead of hallucinating. Langfuse `@observe()` decorates grader nodes (transparent no-op without credentials). Added `alerts` and updated `query_log` (now stores doc_grade) Postgres tables. Added RAGAS eval script at `scripts/evaluate.py` (`make eval`). Fixed a silent credibility score bug: INSUFFICIENT was matching as SUFFICIENT due to substring check.
+**Files touched:** `src/marketpulse/graph/` (new), `src/marketpulse/llm/provider.py`, `src/marketpulse/llm/gemini.py`, `src/marketpulse/synthesis/answer.py`, `src/marketpulse/synthesis/prompts.py`, `src/marketpulse/db/client.py`, `src/marketpulse/db/__init__.py`, `src/marketpulse/ui/app.py`, `tests/test_graph.py`, `tests/test_answer.py`, `Makefile`, `scripts/evaluate.py`, `.env.example`, `pyproject.toml`, `uv.lock`
+**Decisions made:** Streaming UX preserved by running the graph sync (grading only) then streaming outside the graph. MemorySaver chosen over PostgresSaver to avoid psycopg3 dep — sufficient for single-user local demo. RAGAS eval uses no ground truth (online eval only).
+
+---
+
 ## 2026-05-29 — v0.2 additional scrapers (Yahoo, CNBC, Guardian, SEC EDGAR, NewsAPI)
 
 **What changed:** Expanded ingestion from 2 to 7 sources. Added Yahoo Finance, CNBC, Guardian Business as free RSS feeds. Added SEC EDGAR 8-K/10-Q via the EFTS JSON API (httpx, no auth required). Added optional NewsAPI source (graceful no-op if NEWS_API_KEY unset). Fixed SOURCE_CREDIBILITY keys in retriever (were "ft.com"/"marketwatch.com", must match the source metadata key "ft"/"marketwatch"). Total ingestion now yields ~163 articles per run.

@@ -9,8 +9,11 @@ dependencies = [
     "feedparser>=6.0.12",
     "google-genai>=2.6.0",
     "httpx>=0.28.1",
+    "langfuse>=4.7.0",
+    "langgraph>=1.2.2",
     "psycopg2-binary>=2.9.12",
     "python-dotenv>=1.2.2",
+    "ragas>=0.4.3",
     "sentence-transformers>=5.5.1",
     "streamlit>=1.57.0",
 ]
@@ -86,6 +89,12 @@ module = [
     "google.genai",
     "google.genai.*",
     "dotenv",
+    "langfuse",
+    "langfuse.*",
+    "langgraph",
+    "langgraph.*",
+    "ragas",
+    "ragas.*",
 ]
 ignore_missing_imports = true
 

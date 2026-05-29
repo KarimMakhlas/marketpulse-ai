@@ -12,8 +12,11 @@ load_dotenv()
 
 import streamlit as st  # noqa: E402
 
+from marketpulse.db import ensure_schema  # noqa: E402
 from marketpulse.llm.gemini import GeminiProvider  # noqa: E402
 from marketpulse.synthesis.answer import Citation, answer  # noqa: E402
+
+ensure_schema()
 
 EXAMPLE_QUERIES = [
     "What did the financial press report this week about the Federal Reserve?",
@@ -45,8 +48,9 @@ def main() -> None:
 
     st.title("📈 MarketPulse AI")
     st.caption(
-        "Ask questions about today's financial news. Indexed from FT + MarketWatch RSS feeds; "
-        "answered by Gemini with inline citations."
+        "Ask questions about today's financial news. "
+        "Indexed from FT, MarketWatch, Yahoo Finance, CNBC, Guardian & SEC EDGAR; "
+        "answered by Gemini with Self-RAG relevance gating."
     )
 
     with st.form("query_form", clear_on_submit=False):
@@ -70,21 +74,36 @@ def main() -> None:
         st.warning("Please enter a question.")
         return
 
-    # Provider construction surfaces missing-key errors as a friendly message.
     try:
         provider = _provider()
     except RuntimeError as e:
         st.error(str(e))
         return
 
-    with st.spinner("Retrieving relevant chunks…"):
+    with st.spinner("Checking source relevance…"):
         result = answer(query, provider=provider, k=k)
 
-    # Empty-index path: the synthetic stream carries the explanatory message.
+    # Refusal path — Self-RAG grader found no relevant sources.
+    if result.refused:
+        st.warning("".join(result.tokens))
+        st.info(
+            "The Self-RAG grader determined the indexed sources don't cover this question. "
+            "Try `make ingest` to refresh, or ask something more directly covered by recent news."
+        )
+        if result.citations:
+            with st.expander("Retrieved (but insufficient) sources"):
+                _render_sources(result.citations)
+        return
+
+    # Empty-index path.
     if not result.citations:
         st.warning("".join(result.tokens))
         st.info("Run `make ingest` from your terminal to populate the index, then retry.")
         return
+
+    # Relevance badge.
+    if result.doc_grade == "sufficient":
+        st.success("Sources graded: relevant", icon="✓")
 
     st.subheader("Answer")
     answer_slot = st.empty()

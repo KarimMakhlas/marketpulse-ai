@@ -4,7 +4,7 @@
 # Each target prefers `uv run …` so commands work without manually activating
 # the venv. `uv run` syncs dependencies on demand.
 
-.PHONY: help install lint fmt typecheck test ingest producer consumer kafka-up kafka-down ui clean
+.PHONY: help install lint fmt typecheck test ingest producer consumer kafka-up kafka-down ui eval clean
 
 help:  ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} /^[a-zA-Z_-]+:.*##/ { printf "  %-12s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -60,6 +60,9 @@ ask:  ## Ask Gemini a question over the indexed corpus (usage: make ask Q="your 
 
 ui:  ## Launch the Streamlit demo UI at http://localhost:8501
 	uv run streamlit run src/marketpulse/ui/app.py
+
+eval:  ## Run RAGAS evaluation against a small hardcoded question set (requires GEMINI_API_KEY)
+	uv run python scripts/evaluate.py
 
 clean:  ## Remove caches and the virtual env
 	rm -rf .venv .ruff_cache .mypy_cache .pytest_cache .coverage htmlcov coverage.xml

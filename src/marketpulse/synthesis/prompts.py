@@ -35,6 +35,47 @@ def format_sources(chunks: list[RetrievedChunk]) -> str:
     return "\n\n".join(blocks)
 
 
+GRADE_DOCS_TEMPLATE = """You are grading document relevance.
+
+Query: {query}
+
+Retrieved document excerpts:
+{sources_block}
+
+Do these documents contain enough information to answer the query?
+Reply with exactly one word: SUFFICIENT or INSUFFICIENT."""
+
+GRADE_ANSWER_TEMPLATE = """You are grading answer groundedness.
+
+Question: {query}
+
+Sources provided:
+{sources_block}
+
+Answer given:
+{answer}
+
+Does the answer rely only on the provided sources without inventing facts not present in them?
+Reply with exactly one word: GROUNDED or HALLUCINATION."""
+
+
+def build_grade_docs_prompt(query: str, chunks: list[RetrievedChunk]) -> str:
+    return GRADE_DOCS_TEMPLATE.format(
+        query=query,
+        sources_block=format_sources(chunks),
+    )
+
+
+def build_grade_answer_prompt(
+    query: str, chunks: list[RetrievedChunk], answer: str
+) -> str:
+    return GRADE_ANSWER_TEMPLATE.format(
+        query=query,
+        sources_block=format_sources(chunks),
+        answer=answer,
+    )
+
+
 def build_prompt(query: str, chunks: list[RetrievedChunk]) -> str:
     return (
         SYSTEM_INSTRUCTION

@@ -36,7 +36,16 @@ CREATE TABLE IF NOT EXISTS query_log (
     id          SERIAL      PRIMARY KEY,
     query       TEXT        NOT NULL,
     chunk_urls  TEXT[]      NOT NULL,
+    doc_grade   TEXT        NOT NULL DEFAULT '',
     queried_at  TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS alerts (
+    id          SERIAL      PRIMARY KEY,
+    query       TEXT        NOT NULL,
+    alert_type  TEXT        NOT NULL,
+    detail      TEXT        NOT NULL DEFAULT '',
+    created_at  TIMESTAMPTZ NOT NULL
 );
 """
 
@@ -98,16 +107,31 @@ def upsert_article(
         logger.warning("upsert_article failed for %r: %s", url, exc)
 
 
-def log_query(query: str, chunk_urls: list[str]) -> None:
+def log_query(query: str, chunk_urls: list[str], doc_grade: str = "") -> None:
     """Write a query audit row. No-op if DB is unavailable."""
     if not _db_available or _conn is None:
         return
     sql = """
-        INSERT INTO query_log (query, chunk_urls, queried_at)
-        VALUES (%s, %s, %s);
+        INSERT INTO query_log (query, chunk_urls, doc_grade, queried_at)
+        VALUES (%s, %s, %s, %s);
     """
     try:
         with _conn.cursor() as cur:
-            cur.execute(sql, (query, chunk_urls, datetime.now(tz=UTC)))
+            cur.execute(sql, (query, chunk_urls, doc_grade, datetime.now(tz=UTC)))
     except Exception as exc:
         logger.warning("log_query failed: %s", exc)
+
+
+def log_alert(query: str, alert_type: str, detail: str = "") -> None:
+    """Write an alert row (e.g. insufficient sources, quality drift). No-op if DB unavailable."""
+    if not _db_available or _conn is None:
+        return
+    sql = """
+        INSERT INTO alerts (query, alert_type, detail, created_at)
+        VALUES (%s, %s, %s, %s);
+    """
+    try:
+        with _conn.cursor() as cur:
+            cur.execute(sql, (query, alert_type, detail, datetime.now(tz=UTC)))
+    except Exception as exc:
+        logger.warning("log_alert failed: %s", exc)

@@ -43,6 +43,19 @@ class GeminiProvider:
             self._client = genai.Client(api_key=self._api_key)
         return self._client
 
+    def generate(self, prompt: str) -> str:
+        """Synchronous (non-streaming) generation. Used for grading calls."""
+        client = self._ensure_client()
+        response = client.models.generate_content(
+            model=self._model_name,
+            contents=prompt,
+        )
+        try:
+            return response.text or ""
+        except Exception as e:
+            logger.warning("generate() failed to extract text: %s", e)
+            return ""
+
     def generate_stream(self, prompt: str) -> Iterator[str]:
         client = self._ensure_client()
         response = client.models.generate_content_stream(
