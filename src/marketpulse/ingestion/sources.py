@@ -47,6 +47,26 @@ def _strip_html(text: str) -> str:
     return _HTML_TAG.sub("", text).strip()
 
 
+_DISPLAY_NAME_SUFFIX = re.compile(r"\s*\(CIK\s+\d+\)\s*$", re.IGNORECASE)
+
+
+def _entity_from_display_name(display_name: str) -> str:
+    """Extract the entity name from an EDGAR display_names entry.
+
+    Format: ``"ENTITY NAME (TICKER) (CIK 000...)"`` — both the CIK suffix and
+    the optional ticker parenthetical are stripped so the title reads naturally.
+    """
+    if not display_name:
+        return ""
+    name = _DISPLAY_NAME_SUFFIX.sub("", display_name).strip()
+    # Drop a trailing "(TICKER)" if present — single token in parens at the end.
+    if name.endswith(")"):
+        open_idx = name.rfind("(")
+        if open_idx > 0 and " " not in name[open_idx + 1 : -1].strip():
+            name = name[:open_idx].strip()
+    return name
+
+
 def _parse_published(entry: feedparser.FeedParserDict) -> datetime:
     """Return published time as UTC datetime; fall back to 'now' if absent."""
     tup = entry.get("published_parsed") or entry.get("updated_parsed")
@@ -100,7 +120,9 @@ def fetch_newsapi(api_key: str | None = None) -> Iterator[RawArticle]:
         )
 
 
-def fetch_edgar(form_type: str = "8-K", days_back: int = 7, limit: int = 25) -> Iterator[RawArticle]:
+def fetch_edgar(
+    form_type: str = "8-K", days_back: int = 7, limit: int = 25
+) -> Iterator[RawArticle]:
     """Yield RawArticle from recent SEC EDGAR filings via the EFTS JSON API.
 
     Uses the public EDGAR full-text search index — no API key required.
@@ -135,11 +157,21 @@ def fetch_edgar(form_type: str = "8-K", days_back: int = 7, limit: int = 25) -> 
 
     for hit in hits:
         src = hit.get("_source", {})
-        entity = src.get("entity_name", "Unknown Entity")
-        filed_form = src.get("form_type", form_type)
+        display_names: list[str] = src.get("display_names") or []
+        # EFTS exposes the entity inside `display_names` as
+        # "ENTITY NAME (TICKER) (CIK 000...)". `entity_name` / `form_type`
+        # are not part of this payload, so fall back accordingly.
+        entity = (
+            src.get("entity_name")
+            or _entity_from_display_name(display_names[0] if display_names else "")
+            or "Unknown Entity"
+        )
+        filed_form = src.get("form_type") or src.get("form") or form_type
         file_date: str = src.get("file_date", "")
-        accession: str = hit.get("_id", "")
-        display_names: list[str] = src.get("display_names", [])
+        # `_id` is "<accession>:<primary-doc-filename>"; `adsh` (when present)
+        # is the bare accession. Strip the filename suffix from `_id` as a fallback.
+        raw_id: str = hit.get("_id", "")
+        accession: str = src.get("adsh") or raw_id.split(":", 1)[0]
         ticker_info = display_names[0] if display_names else entity
 
         # Build a direct link to the filing index page on SEC.gov.

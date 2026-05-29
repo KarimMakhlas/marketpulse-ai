@@ -26,11 +26,17 @@ _REFUSAL_MESSAGE = (
 )
 
 # Langfuse @observe is a transparent no-op when credentials are absent.
+# The decorator moved from `langfuse.decorators` (3.x) to top-level `langfuse` (4.x);
+# try both so the import works against either SDK generation.
 try:
-    from langfuse.decorators import observe as _lf_observe
+    from langfuse import observe as _lf_observe
 except ImportError:
-    def _lf_observe(func: Any = None, **_: Any) -> Any:
-        return func if func is not None else (lambda f: f)
+    try:
+        from langfuse.decorators import observe as _lf_observe  # type: ignore[no-redef]
+    except ImportError:
+
+        def _lf_observe(func: Any = None, **_: Any) -> Any:
+            return func if func is not None else (lambda f: f)
 
 
 def retrieve_node(state: GraphState, *, provider: LLMProvider) -> dict[str, Any]:  # noqa: ARG001
@@ -47,7 +53,7 @@ def retrieve_node(state: GraphState, *, provider: LLMProvider) -> dict[str, Any]
     return {"grade_chunks": grade_chunks, "chunks": chunks, "citations": citations}
 
 
-@_lf_observe  # type: ignore[untyped-decorator]
+@_lf_observe
 def grade_docs_node(state: GraphState, *, provider: LLMProvider) -> dict[str, Any]:
     """Ask the LLM whether the retrieved docs are relevant to the query.
 

@@ -18,11 +18,17 @@ logger = logging.getLogger(__name__)
 EMPTY_INDEX_MESSAGE = "No indexed sources to answer from. Run `make ingest` first."
 
 # Langfuse @observe — transparent no-op when credentials are absent.
+# The decorator moved from `langfuse.decorators` (3.x) to top-level `langfuse` (4.x);
+# try both so the import works against either SDK generation.
 try:
-    from langfuse.decorators import observe as _lf_observe
+    from langfuse import observe as _lf_observe
 except ImportError:
-    def _lf_observe(func: Any = None, **_: Any) -> Any:
-        return func if func is not None else (lambda f: f)
+    try:
+        from langfuse.decorators import observe as _lf_observe  # type: ignore[no-redef]
+    except ImportError:
+
+        def _lf_observe(func: Any = None, **_: Any) -> Any:
+            return func if func is not None else (lambda f: f)
 
 
 @dataclass(frozen=True)
@@ -40,10 +46,10 @@ class Citation:
 
 @dataclass(frozen=True)
 class AnswerStream:
-    citations: list[Citation]     # known up-front, before any token streams
+    citations: list[Citation]  # known up-front, before any token streams
     tokens: Iterator[str]
-    refused: bool = False         # True when Self-RAG grader rejected the docs
-    doc_grade: str = ""           # "sufficient" | "insufficient" | ""
+    refused: bool = False  # True when Self-RAG grader rejected the docs
+    doc_grade: str = ""  # "sufficient" | "insufficient" | ""
 
 
 def _citation_from_chunk(i: int, chunk: RetrievedChunk) -> Citation:
@@ -60,7 +66,7 @@ def _citation_from_chunk(i: int, chunk: RetrievedChunk) -> Citation:
     )
 
 
-@_lf_observe  # type: ignore[untyped-decorator]
+@_lf_observe
 def answer(query: str, *, provider: LLMProvider, k: int = DEFAULT_K) -> AnswerStream:
     """Run the Self-RAG graph, then stream the LLM answer (or return a refusal)."""
     # Lazy import to avoid circular dependency at module load time.

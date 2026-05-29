@@ -5,6 +5,7 @@ import pytest
 
 from marketpulse.ingestion.sources import (
     RawArticle,
+    _entity_from_display_name,
     _strip_html,
     content_hash,
     fetch_edgar,
@@ -139,6 +140,68 @@ def test_fetch_edgar_parses_hits() -> None:
     assert "APPLE INC" in articles[0].title
     assert articles[0].source == "sec_8k"
     assert "sec.gov" in articles[0].url
+
+
+def test_fetch_edgar_real_efts_shape_builds_clean_url() -> None:
+    """Real EFTS hits expose `adsh` + `display_names` (no `entity_name`).
+
+    Regression: the previous implementation used `_id` as the accession,
+    but EFTS returns `_id` as ``"<accession>:<primary-doc-filename>"``, which
+    embedded the filename into the SEC URL path and broke every link.
+    """
+    payload = {
+        "hits": {
+            "hits": [
+                {
+                    "_id": "0001193125-26-246700:ck0001893262-20260529.htm",
+                    "_source": {
+                        "adsh": "0001193125-26-246700",
+                        "form": "8-K",
+                        "file_date": "2026-05-29",
+                        "display_names": [
+                            "J.P. Morgan Real Estate Income Trust, Inc.  (CIK 0001893262)"
+                        ],
+                        "ciks": ["0001893262"],
+                    },
+                }
+            ]
+        }
+    }
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = payload
+    mock_resp.raise_for_status = MagicMock()
+    mock_httpx = MagicMock()
+    mock_httpx.get.return_value = mock_resp
+
+    with patch.dict("sys.modules", {"httpx": mock_httpx}):
+        articles = list(fetch_edgar(form_type="8-K"))
+
+    assert len(articles) == 1
+    a = articles[0]
+    # URL must not contain the primary-doc filename or a colon
+    assert ":" not in a.url.replace("https://", "")
+    assert ".htm/" not in a.url
+    assert a.url == (
+        "https://www.sec.gov/Archives/edgar/data/"
+        "1193125/000119312526246700/0001193125-26-246700-index.htm"
+    )
+    # Entity name must be parsed from display_names, not the literal "Unknown Entity".
+    assert "Unknown Entity" not in a.title
+    assert "J.P. Morgan Real Estate Income Trust" in a.title
+
+
+def test_entity_from_display_name_strips_cik_and_ticker() -> None:
+    assert (
+        _entity_from_display_name("TYLER TECHNOLOGIES INC  (TYL)  (CIK 0000860731)")
+        == "TYLER TECHNOLOGIES INC"
+    )
+    assert _entity_from_display_name("Apple Inc. (AAPL) (CIK 0000320193)") == "Apple Inc."
+    # No ticker suffix: keep the rest after stripping CIK.
+    assert (
+        _entity_from_display_name("J.P. Morgan Real Estate Income Trust, Inc.  (CIK 0001893262)")
+        == "J.P. Morgan Real Estate Income Trust, Inc."
+    )
+    assert _entity_from_display_name("") == ""
 
 
 def test_fetch_edgar_http_error_yields_nothing() -> None:

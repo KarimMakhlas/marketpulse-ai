@@ -85,10 +85,15 @@ def main() -> None:
             result = answer(query, provider=provider, k=k)
         except Exception as exc:
             msg = str(exc)
-            if "503" in msg or "UNAVAILABLE" in msg:
+            if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
                 st.warning(
-                    "Gemini is temporarily overloaded (503). "
-                    "Wait a few seconds and try again."
+                    "Gemini free-tier quota exhausted (429). "
+                    "`gemini-flash-latest` currently routes to a model with a 20 req/day "
+                    "limit on the free tier. Wait for the daily reset or set a paid key."
+                )
+            elif "503" in msg or "UNAVAILABLE" in msg:
+                st.warning(
+                    "Gemini is temporarily overloaded (503). Wait a few seconds and try again."
                 )
             else:
                 st.error(f"Unexpected error: {exc}")
@@ -125,9 +130,19 @@ def main() -> None:
             answer_slot.markdown(full_answer + "▌")
         answer_slot.markdown(full_answer)
     except Exception as e:  # noqa: BLE001
-        st.error(f"Streaming failed: {e}")
+        msg = str(e)
         if full_answer:
             answer_slot.markdown(full_answer)
+        if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+            st.warning(
+                "Gemini free-tier quota exhausted (429) mid-stream. "
+                "`gemini-flash-latest` currently routes to a model with a 20 req/day limit. "
+                "Wait for the daily reset or use a paid key."
+            )
+        elif "503" in msg or "UNAVAILABLE" in msg:
+            st.warning("Gemini went 503 mid-stream. Try again in a few seconds.")
+        else:
+            st.error(f"Streaming failed: {e}")
 
     _render_sources(result.citations)
 

@@ -48,12 +48,30 @@ def main() -> int:
         print(f"  {c.marker}  {c.source} ({date})  {c.title}")
         print(f"        {c.url}")
     print()
-    print("Answer:")
+    # Self-RAG grader refused — distinguish from a real answer so the reader
+    # doesn't mistake the refusal text for a grounded response.
+    header = "Refused (insufficient sources):" if result.refused else "Answer:"
+    print(header)
     try:
         for token in result.tokens:
             sys.stdout.write(token)
             sys.stdout.flush()
     except Exception as e:  # noqa: BLE001
+        msg = str(e)
+        if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+            print(
+                "\nGemini free-tier quota exhausted (429). "
+                "The gemini-flash-latest alias currently routes to a model with a "
+                "20 req/day free-tier limit. Wait for daily reset or set a paid key.",
+                file=sys.stderr,
+            )
+            return 2
+        if "503" in msg or "UNAVAILABLE" in msg:
+            print(
+                "\nGemini is temporarily overloaded (503). Try again in a few seconds.",
+                file=sys.stderr,
+            )
+            return 2
         print(f"\nerror during streaming: {e}", file=sys.stderr)
         return 1
     sys.stdout.write("\n")

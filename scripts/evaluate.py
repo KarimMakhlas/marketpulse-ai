@@ -67,20 +67,59 @@ def run_eval() -> None:
     # Build RAGAS dataset and evaluate.
     try:
         from datasets import Dataset  # type: ignore[import-untyped]
+        from langchain_community.embeddings import (  # type: ignore[import-untyped]
+            HuggingFaceEmbeddings,
+        )
+        from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
         from ragas import evaluate  # type: ignore[import-untyped]
+        from ragas.embeddings.base import (  # type: ignore[import-untyped]
+            LangchainEmbeddingsWrapper,
+        )
+        from ragas.llms.base import LangchainLLMWrapper  # type: ignore[import-untyped]
         from ragas.metrics import answer_relevancy, faithfulness  # type: ignore[import-untyped]
+        from ragas.run_config import RunConfig  # type: ignore[import-untyped]
     except ImportError as e:
-        print(f"\nRAGAS/datasets not installed: {e}", file=sys.stderr)
-        print("Install with: uv add ragas datasets")
+        print(f"\nRAGAS / langchain wrappers not installed: {e}", file=sys.stderr)
+        print("Install with: uv sync")
         sys.exit(1)
 
-    # Filter rows that have at least one context (refused rows would score 0 on
-    # faithfulness since there's no context — include them to show the effect).
+    # RAGAS defaults to OpenAI for both judge LLM and embeddings, which would
+    # require OPENAI_API_KEY. Wire it up with Gemini + the same local embedding
+    # model the ingestion pipeline already uses, so eval runs on the same stack.
+    # `timeout=120` keeps the wrapper from cutting off slow Gemini calls long
+    # before our RunConfig timeout fires below.
+    eval_llm = LangchainLLMWrapper(
+        ChatGoogleGenerativeAI(
+            model="gemini-flash-latest",
+            google_api_key=os.environ["GEMINI_API_KEY"],
+            timeout=120,
+        )
+    )
+    eval_embeddings = LangchainEmbeddingsWrapper(
+        HuggingFaceEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+    )
+
+    # Gemini flash free tier is 10 RPM. RAGAS defaults to 16 parallel workers,
+    # which trips the rate limit and surfaces as TimeoutError per job. Cap
+    # concurrency hard and give each job a generous wall clock so a single
+    # slow call doesn't poison the whole metric.
+    run_config = RunConfig(max_workers=2, timeout=300)
+
+    # Refused rows have no contexts and will score 0 on faithfulness — keep them
+    # in the dataset so the refusal branch is exercised end-to-end.
     ds = Dataset.from_list(rows)
-    print("\n[eval] Running RAGAS metrics…")
+    print(
+        "\n[eval] Running RAGAS metrics (judge=gemini-flash-latest, embeds=BAAI/bge-small-en-v1.5)…"
+    )
 
     try:
-        scores = evaluate(ds, metrics=[faithfulness, answer_relevancy])
+        scores = evaluate(
+            ds,
+            metrics=[faithfulness, answer_relevancy],
+            llm=eval_llm,
+            embeddings=eval_embeddings,
+            run_config=run_config,
+        )
         print("\n=== RAGAS Evaluation Results ===")
         print(scores)
     except Exception as exc:

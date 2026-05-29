@@ -47,6 +47,11 @@ CREATE TABLE IF NOT EXISTS alerts (
     detail      TEXT        NOT NULL DEFAULT '',
     created_at  TIMESTAMPTZ NOT NULL
 );
+
+-- Idempotent column adds for tables created before v0.3 introduced doc_grade.
+-- CREATE TABLE IF NOT EXISTS skips when the table already exists, so new
+-- columns must be added explicitly. ADD COLUMN IF NOT EXISTS is Postgres 9.6+.
+ALTER TABLE query_log ADD COLUMN IF NOT EXISTS doc_grade TEXT NOT NULL DEFAULT '';
 """
 
 
