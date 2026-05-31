@@ -8,7 +8,7 @@
 [`docs/AI_WORKLOG.md`](docs/AI_WORKLOG.md) for the per-version history and
 [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) for the deferral table.
 
-![MarketPulse AI — query, streamed answer with inline citations, and ranked sources](docs/screenshot.png)
+![MarketPulse AI — query, streamed answer with inline citations, and ranked sources](docs/screenshot.jpg)
 
 ---
 
