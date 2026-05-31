@@ -1,0 +1,52 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Pills & Badges</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 22px; padding: 0 10px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+  .pill.signal  { color: var(--accent-signal);  background: var(--accent-signal-bg);  border-color: var(--accent-signal-ring); }
+  .pill.caution { color: var(--accent-caution); background: var(--accent-caution-bg); border-color: var(--accent-caution-ring); }
+  .pill.loss    { color: var(--accent-loss);    background: var(--accent-loss-bg);    border-color: var(--accent-loss-ring); }
+  .pill.ai      { color: var(--accent-ai);      background: var(--accent-ai-bg);      border-color: var(--accent-ai-ring); }
+  .pill.info    { color: var(--accent-info);    background: var(--accent-info-bg);    border-color: var(--accent-info-ring); }
+  .pill.neutral { color: var(--fg-secondary);   background: var(--bg-card);           border-color: var(--border-default); }
+  .pill.solid   { color: var(--bg-base); background: var(--fg-primary); }
+  .pill.upper { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="row wrap" style="gap:8px">
+    <span class="pill signal"><span class="dot"></span>active</span>
+    <span class="pill signal">↑ +2.4%</span>
+    <span class="pill caution"><span class="dot"></span>degraded</span>
+    <span class="pill loss"><span class="dot"></span>alert</span>
+    <span class="pill loss">↓ −1.1%</span>
+    <span class="pill ai upper">router</span>
+    <span class="pill ai">claude-haiku-4-5</span>
+    <span class="pill info">[S1] Reuters</span>
+    <span class="pill neutral">v2.4.0</span>
+    <span class="pill solid upper">prod</span>
+  </div>
+  <div class="row wrap" style="gap:8px">
+    <span class="pill ai upper" style="height:18px; padding:0 8px; font-size:10px">retrieval</span>
+    <span class="pill ai upper" style="height:18px; padding:0 8px; font-size:10px">critique</span>
+    <span class="pill ai upper" style="height:18px; padding:0 8px; font-size:10px">synthesis</span>
+    <span class="pill ai upper" style="height:18px; padding:0 8px; font-size:10px">grader</span>
+    <span class="pill neutral" style="height:18px; padding:0 8px; font-size:10px">2.4k tok</span>
+    <span class="pill neutral" style="height:18px; padding:0 8px; font-size:10px">$0.0042</span>
+    <span class="pill neutral" style="height:18px; padding:0 8px; font-size:10px">1.8 s</span>
+  </div>
+  <span class="mono-sm fg-tertiary">22px tall (18px compact) · 999px radius · mono · tabular · 6px dot precedes status</span>
+</div>
+</body></html>

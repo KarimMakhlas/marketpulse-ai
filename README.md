@@ -1,13 +1,14 @@
-# 📈 MarketPulse AI
+# MarketPulse AI
 
-> Small, runnable RAG demo over financial news. Ingests RSS feeds, retrieves the
-> top-k most relevant chunks (cosine similarity + recency decay), and asks Gemini
-> to synthesize a cited answer.
+> End-to-end Self-RAG system over financial news. Ingests 7+ live sources, runs a
+> LangGraph grader/router pipeline, and streams cited answers through a FastAPI +
+> React web UI.
 
-**Status:** v0.1 MVP — feature-complete. See [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md)
-for what's in scope and what's deliberately deferred to v0.2+.
+**Status: v0.4 — complete.** All milestones shipped (v0.1 → v0.4). See
+[`docs/AI_WORKLOG.md`](docs/AI_WORKLOG.md) for the per-version history and
+[`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) for the deferral table.
 
-![MarketPulse AI — query, streamed answer with inline citations, and ranked sources](docs/screenshots/image1.png)
+![MarketPulse AI — query, streamed answer with inline citations, and ranked sources](docs/screenshot.png)
 
 ---
 
@@ -16,99 +17,136 @@ for what's in scope and what's deliberately deferred to v0.2+.
 ```
 USER:  "What did the financial press report about the Fed this week?"
 
-  │ make ingest         RSS (FT + MarketWatch) → dedup → chunk
-  │                     → BGE-small embed → ChromaDB upsert
+  │ make ingest         7 sources → dedup → chunk → BGE-small embed
+  │ (or make kafka-up   → producer polls every 5 min → Kafka → consumer)
   │
-  │ retrieval.search()  cosine top-k + recency blend (0.7 / 0.3)
+  │ LangGraph pipeline  retrieve → grade_docs → route
+  │                     → build_prompt  ← enough graded sources
+  │                     → refuse        ← insufficient sources
   │
-  │ synthesis.answer()  build prompt with [S1]..[Sk] markers
-  │                     → Gemini stream → cited answer
+  │ GeminiProvider      stream cited answer via WS /query/stream
   │
-  ▼ make ui             Streamlit at http://localhost:8501
-                        (streamed answer + sources + score panels)
+  ▼ make api            React web UI at http://localhost:8000/app
+                        (streamed answer + citations + live dashboard)
 ```
 
-Two sources, one local vector store, one LLM call. No Kafka, no LangGraph, no
-Langfuse — the v0.1 scope is deliberately minimal so the full pipeline fits in
-~600 LOC and runs locally in seconds.
+Sources: FT · MarketWatch · Yahoo Finance · CNBC · The Guardian · SEC EDGAR
+(8-K + 10-Q) · NewsAPI (optional). Retrieval re-ranks with MMR (λ=0.7) and
+blends `0.60·cosine + 0.25·recency + 0.15·credibility`.
+
+---
 
 ## Quickstart
 
 ```bash
-# Prereqs: macOS/Linux, Python 3.12+, uv (https://docs.astral.sh/uv/), a Google
-#          AI Studio API key (free tier — https://aistudio.google.com/apikey)
+# Prereqs: Python 3.12+, uv (https://docs.astral.sh/uv/),
+#          a free Gemini API key (https://aistudio.google.com/apikey)
 
 git clone <this-repo>
 cd MarketPulseAI
 
-# 1. Install deps (downloads PyTorch + sentence-transformers on first run; ~1 GB,
-#                  cached forever after)
+# 1. Install deps (first run downloads PyTorch + sentence-transformers, ~1 GB)
 uv sync
 
 # 2. Add your Gemini key
 cp .env.example .env
-# then edit .env and paste your key
+# edit .env and paste GEMINI_API_KEY=...
 
-# 3. Pull in some articles (~10 seconds, ~20 chunks from 2 RSS feeds)
-make ingest
+# 3. Pull articles and index them
+make ingest          # ~10–30 s, idempotent
 
-# 4. Ask a question via CLI
+# 4. Ask a question via CLI (no server needed)
 make ask Q="What is the financial press saying about AI chip stocks?"
 
-# 5. Or launch the Streamlit UI
-make ui   # → open http://localhost:8501
+# 5. Or launch the full API + web UI
+make api             # → open http://localhost:8000/app
 ```
 
-Other commands:
+Register a user, log in, and query from the browser. The API docs are at
+`http://localhost:8000/docs`.
+
+---
+
+## Commands
 
 | Command | What it does |
 |---|---|
-| `make help` | Lists all Makefile targets |
-| `make query Q="…"` | Retrieval-only (no LLM call, no cost) — useful for tuning |
+| `make ingest` | One-shot ingestion of all 7 sources → embed → upsert |
+| `make kafka-up` / `make producer` / `make consumer` | Streaming ingestion via Kafka (requires Docker) |
+| `make query Q="…"` | Retrieval only — no LLM call, useful for tuning |
+| `make ask Q="…"` | Full Self-RAG via CLI (requires `GEMINI_API_KEY`) |
+| `make api` | FastAPI at http://localhost:8000 — serves the React UI at `/app` |
+| `make eval` | RAGAS evaluation over a hardcoded question set (uses Gemini quota) |
+| `make migrate` | `alembic upgrade head` against `DATABASE_URL` |
+| `make stack-up` / `make stack-down` | Full Docker stack: API + Postgres + Redis + Kafka |
 | `make lint` / `make fmt` | ruff |
 | `make typecheck` | mypy strict on `src/marketpulse/` |
-| `make test` | pytest, 34 unit tests, ~1.3s |
-| `make clean` | Wipe `.venv/` and tool caches |
+| `make test` | pytest, 120 unit tests, ~5 s (no network, no LLM, no real DB) |
+
+---
 
 ## Project structure
 
 ```
+frontend/src/          React web UI (Babel-CDN, no build step)
+                       api.js drives live WS + read endpoints;
+                       every screen wired to the API (live values or
+                       honest "—"/"Not wired", never fabricated data).
+                       Served by FastAPI at /app.
+
 src/marketpulse/
-  ingestion/      # fetch + dedup + chunk + embed + upsert
-  retrieval/      # search() with cosine + recency blend
-  llm/            # LLMProvider Protocol + GeminiProvider
-  synthesis/      # answer orchestration + prompt templates
-  ui/             # Streamlit app
-tests/            # 34 unit tests (no live network, no real LLM)
-docs/             # MVP_SCOPE + (future) ARCHITECTURE, DECISIONS
-data/             # ChromaDB lives here at runtime (gitignored)
+  ingestion/           sources.py + indexer.py
+                       + kafka_config.py / producer.py / consumer.py
+  retrieval/           retriever.py — MMR + credibility blend
+  graph/               state.py + nodes.py + build.py — LangGraph Self-RAG
+  llm/                 provider.py (Protocol) + gemini.py
+  synthesis/           answer.py — prompt orchestration + streaming
+  db.py                Postgres store: users + query_log + alerts
+  observability.py     Langfuse @observe shim (no-op without creds)
+  api/                 security.py + schemas.py + deps.py + app.py
+                       POST /query · WS /query/stream · GET /health
+                       GET /stats · GET /sources · GET /queries
+
+tests/                 120 unit tests — strict isolation
+scripts/               evaluate.py (RAGAS eval)
+migrations/            Alembic env + versions/
+docs/                  AI_WORKLOG, MVP_SCOPE, PRODUCT_BRIEF,
+                       TESTING_STRATEGY, design-system/
+docker/                docker-compose.kafka.yml
+docker-compose.yml     Full stack (API + Postgres + Redis + Kafka)
+Dockerfile             API image (uv-based)
+.github/workflows/     CI: lint + format + mypy + pytest + alembic check
 ```
+
+---
 
 ## Tech stack
 
-`uv` · `ruff` · `mypy --strict` · `pytest` · `feedparser` · `sentence-transformers`
-(BGE-small-en-v1.5, local) · `chromadb` (PersistentClient) · `google-genai`
-(Gemini `gemini-flash-latest`) · `streamlit` · `python-dotenv`.
+`uv` · `ruff` · `mypy --strict` · `pytest-cov` · `feedparser` · `httpx` ·
+`sentence-transformers` (BGE-small-en-v1.5, local) · `chromadb`
+(PersistentClient, cosine) · `langgraph` · `google-genai` (`gemini-flash-latest`)
+· `fastapi` + `uvicorn` · `python-jose` + `bcrypt` (JWT/OAuth2) · `slowapi`
+(rate limiting) · `psycopg2` · `alembic` · `kafka-python` · `langfuse` ·
+`ragas` · `python-dotenv`
+
+---
 
 ## Design highlights
 
-- **Provider abstraction** (`src/marketpulse/llm/provider.py`) — `LLMProvider` is
-  a `typing.Protocol` with a single `generate_stream` method. Swapping Gemini
-  for Groq, OpenAI, or local Ollama is one new file implementing the Protocol.
+- **Self-RAG via LangGraph** — `grade_docs` scores each retrieved chunk against
+  the query; the router branches to `build_prompt` when enough chunks pass, or
+  `refuse` when they don't. No hallucinated answers when sources are thin.
+- **Provider abstraction** (`src/marketpulse/llm/provider.py`) — `LLMProvider`
+  is a `typing.Protocol`. Swapping Gemini for any other model is one new file.
+- **Streaming over WebSocket** — `WS /query/stream` pushes `meta` / `token` /
+  `done` / `error` frames so the UI renders the answer word-by-word.
 - **Idempotent ingestion** — chunks are keyed by `sha256(url)_chunk_idx`, so
-  re-running `make ingest` upserts (zero duplicates) instead of accumulating.
-- **Cosine + normalized embeddings** — Chroma's default L2 is wrong for BGE;
-  collection is created with `hnsw:space=cosine` and embeddings are L2-normalized
-  at both index and query time.
-- **Refusal via prompt, not code** — the synthesis prompt instructs Gemini to
-  explicitly say so when sources don't answer the question, rather than letting
-  it fabricate. Verified on out-of-corpus queries (e.g. *"airspeed velocity of
-  an unladen swallow"* → graceful refusal, no fake citations).
-
-## Deferred to future versions
-
-See [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) for the full deferral table.
-Headline items: **v0.2** — Kafka, more sources (SEC EDGAR, Reddit, etc.),
-source-credibility weighting, MMR re-ranking. **v0.3** — LangGraph multi-agent
-(Router + Critique + Grader), Langfuse observability, RAGAS evaluation.
-**v0.4** — FastAPI + WebSockets + auth, Docker Compose, deployment.
+  re-running `make ingest` upserts without accumulating duplicates.
+- **Cosine + normalized embeddings** — Chroma's default distance is L2; the
+  collection is explicitly created with `hnsw:space=cosine` and BGE embeddings
+  are L2-normalized at both index and query time.
+- **Honest UI** — every dashboard metric comes from a real API endpoint or
+  renders as `—`. No fabricated numbers, no `Math.random()` charts.
+- **Graceful degradation** — Postgres, Redis, Kafka, Langfuse, and NewsAPI are
+  all optional. The core `make ingest` + `make ask` flow works with just a
+  Gemini key.

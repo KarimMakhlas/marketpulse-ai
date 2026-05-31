@@ -1,4 +1,4 @@
-"""Tests for src/marketpulse/db/client.py — all psycopg2 calls mocked."""
+"""Tests for src/marketpulse/db.py — all psycopg2 calls mocked."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import marketpulse.db.client as db_client
+import marketpulse.db as db_client
 
 
 def _reset_module() -> None:
@@ -171,3 +171,51 @@ def test_log_query_swallows_exception() -> None:
     db_client._db_available = True
 
     db_client.log_query("crash?", [])  # must not raise
+
+
+# ---------------------------------------------------------------------------
+# count_queries_today / recent_queries
+# ---------------------------------------------------------------------------
+
+
+def test_count_queries_today_db_unavailable() -> None:
+    assert db_client.count_queries_today() is None
+
+
+def test_count_queries_today_returns_int() -> None:
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_cursor.fetchone.return_value = (7,)
+    mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
+    mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+    db_client._conn = mock_conn
+    db_client._db_available = True
+
+    assert db_client.count_queries_today() == 7
+    sql = mock_cursor.execute.call_args[0][0]
+    assert "FROM query_log" in sql
+
+
+def test_recent_queries_db_unavailable() -> None:
+    assert db_client.recent_queries() == []
+
+
+def test_recent_queries_maps_rows() -> None:
+    when = datetime(2026, 5, 30, 12, 0, tzinfo=UTC)
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_cursor.fetchall.return_value = [
+        ("what about the fed?", "sufficient", when, 5),
+        ("swallow velocity?", "insufficient", when, 0),
+    ]
+    mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
+    mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+    db_client._conn = mock_conn
+    db_client._db_available = True
+
+    rows = db_client.recent_queries(limit=10)
+    assert len(rows) == 2
+    assert rows[0].query == "what about the fed?"
+    assert rows[0].doc_grade == "sufficient"
+    assert rows[0].sources_count == 5
+    assert rows[1].sources_count == 0

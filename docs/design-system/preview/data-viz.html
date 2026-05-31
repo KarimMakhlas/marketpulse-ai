@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Data Viz Tokens</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .chart {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-2);
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .chart .eyebrow { font-size: 10px; }
+  .chart .val { font-family: var(--font-mono); font-size: 18px; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .chart svg { width: 100%; height: 56px; }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="grid">
+    <div class="chart">
+      <span class="eyebrow">Faithfulness · 24h</span>
+      <span class="val fg-signal">0.89</span>
+      <svg viewBox="0 0 240 60" preserveAspectRatio="none" fill="none">
+        <defs><linearGradient id="g1" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#00E08F" stop-opacity="0.3"/><stop offset="1" stop-color="#00E08F" stop-opacity="0"/></linearGradient></defs>
+        <path d="M0,42 L20,38 L40,40 L60,32 L80,34 L100,28 L120,30 L140,24 L160,26 L180,20 L200,22 L220,16 L240,18 L240,60 L0,60 Z" fill="url(#g1)"/>
+        <polyline points="0,42 20,38 40,40 60,32 80,34 100,28 120,30 140,24 160,26 180,20 200,22 220,16 240,18" stroke="#00E08F" stroke-width="1.5"/>
+        <line x1="0" y1="16" x2="240" y2="16" stroke="rgba(255,255,255,0.04)" stroke-dasharray="2 4"/>
+      </svg>
+    </div>
+    <div class="chart">
+      <span class="eyebrow">Hallucination rate · 24h</span>
+      <span class="val fg-caution">7.4%</span>
+      <svg viewBox="0 0 240 60" preserveAspectRatio="none" fill="none">
+        <g fill="#FFB020">
+          <rect x="2" y="40" width="14" height="20"/><rect x="22" y="36" width="14" height="24"/><rect x="42" y="44" width="14" height="16"/>
+          <rect x="62" y="32" width="14" height="28"/><rect x="82" y="40" width="14" height="20"/><rect x="102" y="28" width="14" height="32"/>
+          <rect x="122" y="34" width="14" height="26"/><rect x="142" y="44" width="14" height="16"/><rect x="162" y="38" width="14" height="22"/>
+          <rect x="182" y="30" width="14" height="30"/><rect x="202" y="42" width="14" height="18"/><rect x="222" y="36" width="14" height="24"/>
+        </g>
+      </svg>
+    </div>
+    <div class="chart">
+      <span class="eyebrow">Cost per query · 24h</span>
+      <span class="val fg-ai">$0.0042</span>
+      <svg viewBox="0 0 240 60" preserveAspectRatio="none" fill="none">
+        <polyline points="0,30 20,32 40,30 60,28 80,30 100,32 120,30 140,28 160,26 180,28 200,26 220,28 240,26" stroke="#7C5CFF" stroke-width="1.5"/>
+        <polyline points="0,42 20,40 40,38 60,42 80,40 100,38 120,42 140,38 160,40 180,36 200,38 220,36 240,34" stroke="#4DA3FF" stroke-width="1.5" stroke-dasharray="3 3"/>
+      </svg>
+    </div>
+  </div>
+</div>
+</body></html>

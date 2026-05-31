@@ -13,7 +13,7 @@ import logging
 from aiokafka import AIOKafkaProducer  # type: ignore[import-untyped]
 
 from .indexer import get_collection
-from .pipeline import KAFKA_BOOTSTRAP, POLL_INTERVAL, TOPIC
+from .kafka_config import KAFKA_BOOTSTRAP, POLL_INTERVAL, TOPIC
 from .sources import FEEDS, RawArticle, content_hash, fetch_feed
 
 logger = logging.getLogger(__name__)

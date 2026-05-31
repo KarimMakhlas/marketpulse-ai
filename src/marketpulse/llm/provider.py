@@ -11,6 +11,14 @@ from collections.abc import Iterator
 from typing import Protocol
 
 
+class LLMQuotaError(RuntimeError):
+    """Provider free-tier quota exhausted (HTTP 429 / RESOURCE_EXHAUSTED)."""
+
+
+class LLMOverloadedError(RuntimeError):
+    """Provider temporarily overloaded (HTTP 503 / UNAVAILABLE)."""
+
+
 class LLMProvider(Protocol):
     def generate_stream(self, prompt: str) -> Iterator[str]: ...
     def generate(self, prompt: str) -> str: ...

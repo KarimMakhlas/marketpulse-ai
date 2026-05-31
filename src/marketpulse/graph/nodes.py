@@ -13,8 +13,7 @@ from typing import Any
 from ..llm.provider import LLMProvider
 from ..observability import observe as _lf_observe
 from ..retrieval.retriever import RetrievedChunk, search
-from ..synthesis.answer import _citation_from_chunk
-from ..synthesis.prompts import build_grade_docs_prompt, build_prompt
+from ..synthesis.answer import _citation_from_chunk, build_grade_docs_prompt, build_prompt
 from .state import GraphState
 
 logger = logging.getLogger(__name__)

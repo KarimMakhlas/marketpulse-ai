@@ -1,0 +1,57 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Citation & Confidence</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .answer {
+    font-size: 14px; line-height: 22px; color: var(--fg-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-2);
+    padding: 14px 16px;
+  }
+  .cite {
+    display: inline-block;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    color: var(--accent-info); background: var(--accent-info-bg);
+    border: 1px solid var(--accent-info-ring);
+    padding: 0 5px; border-radius: 3px;
+    vertical-align: 1px;
+    margin: 0 1px;
+  }
+  .cursor { display:inline-block; width:6px; height:14px; background: var(--accent-ai); vertical-align:-2px; margin-left:2px; animation: blink 1.06s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .meta-row {
+    display: flex; gap: 16px; align-items: center;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--fg-secondary);
+  }
+  .bar {
+    height: 6px; background: var(--bg-inset);
+    border-radius: 999px; overflow: hidden;
+    flex: 1;
+  }
+  .bar > i { display:block; height:100%; background: var(--accent-signal); width: 86%; }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="answer">
+    NVIDIA beat expectations according to recent analyst reactions. Revenue guidance was viewed positively<span class="cite">S1</span><span class="cite">S2</span>, although some analysts expressed concern about valuation pressure<span class="cite">S3</span><span class="cursor"></span>
+  </div>
+  <div class="meta-row">
+    <span style="width:90px">Confidence</span>
+    <div class="bar"><i></i></div>
+    <span class="fg-signal" style="width:36px; text-align:right">0.86</span>
+  </div>
+  <div class="meta-row">
+    <span class="fg-signal">● Hallucination low</span>
+    <span class="fg-tertiary">·</span>
+    <span>1.8 s</span>
+    <span class="fg-tertiary">·</span>
+    <span class="fg-ai">tr_8f3a91d2</span>
+    <span class="fg-tertiary">·</span>
+    <span>5 sources</span>
+  </div>
+</div>
+</body></html>

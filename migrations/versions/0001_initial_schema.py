@@ -4,7 +4,7 @@ Revision ID: 0001
 Revises:
 Create Date: 2026-05-29
 
-Mirrors the DDL in src/marketpulse/db/client.py so a fresh deployment can be
+Mirrors the DDL in src/marketpulse/db.py so a fresh deployment can be
 provisioned with `alembic upgrade head` instead of relying on ensure_schema().
 ensure_schema() remains for zero-setup local dev; Alembic is the production path.
 """

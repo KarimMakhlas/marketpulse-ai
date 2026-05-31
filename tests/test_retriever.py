@@ -184,3 +184,31 @@ def test_mmr_pure_relevance_lambda_preserves_score_order() -> None:
     result = mmr_rerank(chunks, embeddings, k=3, lam=1.0)
     scores = [c.score for c in result]
     assert scores == sorted(scores, reverse=True)
+
+
+# ---------------------------------------------------------------------------
+# list_sources
+# ---------------------------------------------------------------------------
+
+
+def test_list_sources_includes_all_known_feeds() -> None:
+    from marketpulse.retrieval.retriever import list_sources
+
+    ids = {s.id for s in list_sources()}
+    assert {"ft", "marketwatch", "yahoo", "cnbc", "guardian", "sec_8k", "sec_10q"} <= ids
+
+
+def test_list_sources_sorted_by_credibility_desc() -> None:
+    from marketpulse.retrieval.retriever import list_sources
+
+    creds = [s.credibility for s in list_sources()]
+    assert creds == sorted(creds, reverse=True)
+
+
+def test_list_sources_carries_display_name_and_kind() -> None:
+    from marketpulse.retrieval.retriever import list_sources
+
+    by_id = {s.id: s for s in list_sources()}
+    assert by_id["ft"].name == "Financial Times"
+    assert by_id["ft"].kind == "rss"
+    assert by_id["sec_8k"].kind == "edgar"

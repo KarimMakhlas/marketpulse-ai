@@ -8,7 +8,6 @@ and monkeypatch (WebSocket calls get_provider() directly).
 from __future__ import annotations
 
 from collections.abc import Iterator
-from datetime import UTC, datetime
 
 import pytest
 from fastapi import FastAPI, Request
@@ -17,23 +16,11 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from conftest import FakeProvider, make_chunk
 from marketpulse.api import app as app_module
 from marketpulse.api import deps
 from marketpulse.api.app import create_app
 from marketpulse.db import UserAlreadyExistsError, UserRecord
-from marketpulse.retrieval.retriever import RetrievedChunk
-
-
-class FakeProvider:
-    def __init__(self, tokens: list[str], grade: str = "SUFFICIENT") -> None:
-        self._tokens = tokens
-        self._grade = grade
-
-    def generate(self, prompt: str) -> str:  # noqa: ARG002
-        return self._grade
-
-    def generate_stream(self, prompt: str) -> Iterator[str]:  # noqa: ARG002
-        yield from self._tokens
 
 
 class FakeUserStore:
@@ -49,20 +36,6 @@ class FakeUserStore:
 
     def get(self, username: str) -> UserRecord | None:
         return self._users.get(username)
-
-
-def _chunk(i: int) -> RetrievedChunk:
-    return RetrievedChunk(
-        text=f"text {i}",
-        source="ft",
-        url=f"https://example.com/{i}",
-        title=f"Title {i}",
-        published_at=datetime(2026, 5, 27, tzinfo=UTC),
-        similarity=0.5,
-        recency=0.5,
-        credibility=0.85,
-        score=0.5,
-    )
 
 
 @pytest.fixture
@@ -93,7 +66,12 @@ def client(
     monkeypatch.setattr(app_module, "get_user", store.get)
     monkeypatch.setattr(deps, "get_user", store.get)
     # Avoid real Chroma; answer() -> graph -> search() is patched at its source.
-    monkeypatch.setattr("marketpulse.graph.nodes.search", lambda q, k: [_chunk(1), _chunk(2)])
+    monkeypatch.setattr(
+        "marketpulse.graph.nodes.search", lambda q, k: [make_chunk(1), make_chunk(2)]
+    )
+    # /stats calls collection_count() which would otherwise open a real Chroma
+    # client on disk — stub it so the stats endpoint stays isolated.
+    monkeypatch.setattr(app_module, "collection_count", lambda: 1234)
     # WebSocket path calls get_provider() directly.
     monkeypatch.setattr(app_module, "get_provider", lambda: provider)
 
@@ -111,13 +89,54 @@ def _register_and_token(client: TestClient, username: str = "alice") -> str:
     return str(r.json()["access_token"])
 
 
-# --- health -----------------------------------------------------------------
+# --- health / stats / sources ----------------------------------------------
 
 
 def test_health(client: TestClient) -> None:
     r = client.get("/health")
     assert r.status_code == 200
-    assert r.json()["status"] == "ok"
+    body = r.json()
+    assert body["status"] == "ok"
+    # Extended fields the Settings/Dashboard screens read.
+    assert "version" in body
+    assert body["model"]  # configured LLM model name
+    assert body["default_k"] >= 1
+    assert body["db"] is False  # DATABASE_URL deleted in the fixture
+    assert "redis" in body
+
+
+def test_stats_public(client: TestClient) -> None:
+    r = client.get("/stats")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["articles_indexed"] == 1234  # stubbed collection_count
+    assert body["queries_today"] is None  # no DB in tests
+    assert body["sources_active"] >= 7  # real ingestion source set
+    assert body["db_available"] is False
+
+
+def test_sources_public(client: TestClient) -> None:
+    r = client.get("/sources")
+    assert r.status_code == 200
+    rows = r.json()
+    assert len(rows) >= 7
+    ids = {row["id"] for row in rows}
+    assert "ft" in ids and "sec_8k" in ids
+    # Sorted by credibility, highest first.
+    creds = [row["credibility"] for row in rows]
+    assert creds == sorted(creds, reverse=True)
+
+
+def test_queries_requires_auth(client: TestClient) -> None:
+    r = client.get("/queries")
+    assert r.status_code == 401
+
+
+def test_queries_authed_returns_list(client: TestClient) -> None:
+    token = _register_and_token(client, username="histuser")
+    r = client.get("/queries", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    assert r.json() == []  # query_log is a no-op without a DB
 
 
 # --- auth -------------------------------------------------------------------

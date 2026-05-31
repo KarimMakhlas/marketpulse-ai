@@ -77,6 +77,15 @@ def get_collection() -> Any:
     return _collection
 
 
+def collection_count() -> int | None:
+    """Return the number of indexed chunks, or None if Chroma is unreachable."""
+    try:
+        return int(get_collection().count())
+    except Exception as exc:
+        logger.warning("collection_count failed: %s", exc)
+        return None
+
+
 def upsert_chunks(article: RawArticle, chunks: list[str]) -> int:
     """Embed chunks and upsert into Chroma. Returns chunk count."""
     if not chunks:

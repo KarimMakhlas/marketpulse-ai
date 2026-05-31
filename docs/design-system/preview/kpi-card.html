@@ -1,0 +1,46 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>KPI Card</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-2);
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 6px;
+    box-shadow: var(--shadow-1);
+  }
+  .kpi .eyebrow { font-size:10px; }
+  .kpi .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 26px; line-height: 30px; font-weight: 500; letter-spacing: -0.01em; }
+  .kpi .delta { font-family: var(--font-mono); font-size: 11px; }
+  .kpi .spark { height: 18px; margin-top: 2px; }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="grid">
+    <div class="kpi">
+      <span class="eyebrow">Articles today</span>
+      <span class="num">52,430</span>
+      <span class="delta fg-signal">↑ +12% vs. 24h</span>
+    </div>
+    <div class="kpi">
+      <span class="eyebrow">RAGAS faithfulness</span>
+      <span class="num">0.89</span>
+      <svg class="spark" viewBox="0 0 120 20" preserveAspectRatio="none" fill="none" stroke="#00E08F" stroke-width="1.5"><polyline points="0,14 12,12 24,13 36,10 48,11 60,8 72,9 84,6 96,7 108,5 120,4"/></svg>
+    </div>
+    <div class="kpi">
+      <span class="eyebrow">Avg latency</span>
+      <span class="num">1.8<span class="fg-tertiary" style="font-size:14px"> s</span></span>
+      <span class="delta fg-caution">↑ +0.2 s vs. 24h</span>
+    </div>
+    <div class="kpi">
+      <span class="eyebrow">Hallucination alerts</span>
+      <span class="num">0</span>
+      <span class="delta fg-tertiary">last 24h · all clear</span>
+    </div>
+  </div>
+</div>
+</body></html>

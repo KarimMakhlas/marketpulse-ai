@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Colors — AI / Info Accents</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .acc {
+    flex: 1; border-radius: var(--radius-2);
+    padding: 14px 16px; border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: var(--radius-full); display:inline-block; }
+  .acc .head { display:flex; align-items:center; gap:8px; }
+  .acc .name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+  .acc .hex  { font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); }
+  .acc .use  { font-size: 12px; line-height: 16px; color: var(--fg-secondary); }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="row" style="gap:10px; align-items:stretch">
+    <div class="acc">
+      <div class="head"><span class="dot" style="background:#7C5CFF; box-shadow: 0 0 0 3px rgba(124,92,255,0.30)"></span><span class="name fg-ai">ai</span><span class="hex">#7C5CFF</span></div>
+      <span class="use">Agents · RAGAS · trace IDs · model pills</span>
+    </div>
+    <div class="acc">
+      <div class="head"><span class="dot" style="background:#4DA3FF; box-shadow: 0 0 0 3px rgba(77,163,255,0.30)"></span><span class="name fg-info">info</span><span class="hex">#4DA3FF</span></div>
+      <span class="use">Sources · Kafka · citations · ingestion</span>
+    </div>
+    <div class="acc" style="background: linear-gradient(135deg, #7C5CFF 0%, #4DA3FF 100%); border: none; color:#fff">
+      <div class="head"><span class="name" style="color:#fff">gradient-brand</span></div>
+      <span class="use" style="color: rgba(255,255,255,0.85)">Wordmark · agent badge ring · active progress</span>
+    </div>
+  </div>
+</div>
+</body></html>

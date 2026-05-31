@@ -1,0 +1,49 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Agent Glyphs</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .row5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .glyph {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-2);
+    padding: 14px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--accent-ai);
+  }
+  .glyph img { width: 28px; height: 28px; }
+  .glyph .lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent-ai);
+  }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="row5">
+    <div class="glyph"><img src="../assets/icons/agent-router.svg" alt=""><span class="lbl">Router</span></div>
+    <div class="glyph"><img src="../assets/icons/agent-retrieval.svg" alt=""><span class="lbl">Retrieval</span></div>
+    <div class="glyph"><img src="../assets/icons/agent-critique.svg" alt=""><span class="lbl">Critique</span></div>
+    <div class="glyph"><img src="../assets/icons/agent-synthesis.svg" alt=""><span class="lbl">Synthesis</span></div>
+    <div class="glyph"><img src="../assets/icons/agent-grader.svg" alt=""><span class="lbl">Grader</span></div>
+  </div>
+  <span class="mono-sm fg-tertiary">Custom geometric glyphs — one per LangGraph agent. 1.5px stroke, inherits currentColor (violet by default).</span>
+</div>
+<script>
+  // Tint SVGs by replacing them with inline copies that take currentColor
+  Promise.all([...document.querySelectorAll('.glyph img')].map(async (img) => {
+    const r = await fetch(img.src); const t = await r.text();
+    const span = document.createElement('span');
+    span.innerHTML = t;
+    const svg = span.querySelector('svg');
+    svg.setAttribute('width','28'); svg.setAttribute('height','28');
+    svg.style.color = 'currentColor';
+    img.replaceWith(span);
+  }));
+</script>
+</body></html>

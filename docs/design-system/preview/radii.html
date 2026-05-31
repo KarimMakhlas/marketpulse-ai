@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Radii</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid5 { display:grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .box {
+    aspect-ratio: 1.4 / 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap: 4px;
+  }
+  .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--fg-secondary); }
+  .val { font-family: var(--font-mono); font-size: 10px; color: var(--fg-tertiary); }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="grid5">
+    <div class="box" style="border-radius: 0"><span class="lbl">radius-0</span><span class="val">0px</span></div>
+    <div class="box" style="border-radius: 4px"><span class="lbl">radius-1</span><span class="val">4px</span></div>
+    <div class="box" style="border-radius: 6px"><span class="lbl">radius-2</span><span class="val">6px</span></div>
+    <div class="box" style="border-radius: 10px"><span class="lbl">radius-3</span><span class="val">10px</span></div>
+    <div class="box" style="border-radius: 999px"><span class="lbl">radius-full</span><span class="val">pill</span></div>
+  </div>
+  <span class="mono-sm fg-tertiary">Sharp by default — buttons + inputs 4 · cards 6 · large features 10. No oversized rounded-2xl.</span>
+</div>
+</body></html>

@@ -4,7 +4,7 @@
 # Each target prefers `uv run …` so commands work without manually activating
 # the venv. `uv run` syncs dependencies on demand.
 
-.PHONY: help install lint fmt typecheck test ingest producer consumer kafka-up kafka-down ui eval api migrate stack-up stack-down clean
+.PHONY: help install lint fmt typecheck test ingest producer consumer kafka-up kafka-down eval api migrate stack-up stack-down clean
 
 help:  ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} /^[a-zA-Z_-]+:.*##/ { printf "  %-12s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -45,10 +45,10 @@ consumer:  ## Start the Kafka consumer (embeds + upserts to ChromaDB); requires 
 	uv run python -m marketpulse.ingestion --mode consumer
 
 kafka-up:  ## Start Kafka (Docker) in the background
-	docker compose -f docker/docker-compose.yml up -d
+	docker compose -f docker/docker-compose.kafka.yml up -d
 
 kafka-down:  ## Stop and remove Kafka containers
-	docker compose -f docker/docker-compose.yml down
+	docker compose -f docker/docker-compose.kafka.yml down
 
 query:  ## Ad-hoc retrieval query (usage: make query Q="your question")
 	@if [ -z "$(Q)" ]; then echo 'usage: make query Q="your question"'; exit 1; fi
@@ -57,9 +57,6 @@ query:  ## Ad-hoc retrieval query (usage: make query Q="your question")
 ask:  ## Ask Gemini a question over the indexed corpus (usage: make ask Q="your question")
 	@if [ -z "$(Q)" ]; then echo 'usage: make ask Q="your question"'; exit 1; fi
 	uv run python -m marketpulse.synthesis "$(Q)"
-
-ui:  ## Launch the Streamlit demo UI at http://localhost:8501
-	uv run streamlit run src/marketpulse/ui/app.py
 
 eval:  ## Run RAGAS evaluation against a small hardcoded question set (requires GEMINI_API_KEY)
 	uv run python scripts/evaluate.py

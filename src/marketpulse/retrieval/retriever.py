@@ -34,6 +34,41 @@ SOURCE_CREDIBILITY: dict[str, float] = {
 }
 DEFAULT_CREDIBILITY = 0.70
 
+# Human-readable names + ingestion kind for each known source key. Used by the
+# API's /sources endpoint so the UI lists exactly what the pipeline ingests.
+SOURCE_DISPLAY: dict[str, tuple[str, str]] = {
+    "ft": ("Financial Times", "rss"),
+    "marketwatch": ("MarketWatch", "rss"),
+    "yahoo": ("Yahoo Finance", "rss"),
+    "cnbc": ("CNBC", "rss"),
+    "guardian": ("The Guardian", "rss"),
+    "sec_8k": ("SEC EDGAR · 8-K", "edgar"),
+    "sec_10q": ("SEC EDGAR · 10-Q", "edgar"),
+    "newsapi": ("NewsAPI", "newsapi"),
+}
+
+
+@dataclass(frozen=True)
+class SourceInfo:
+    id: str
+    name: str
+    kind: str  # "rss" | "edgar" | "newsapi"
+    credibility: float
+
+
+def list_sources() -> list[SourceInfo]:
+    """Return the canonical set of ingestion sources, highest credibility first."""
+    infos = [
+        SourceInfo(
+            id=key,
+            name=name,
+            kind=kind,
+            credibility=SOURCE_CREDIBILITY.get(key, DEFAULT_CREDIBILITY),
+        )
+        for key, (name, kind) in SOURCE_DISPLAY.items()
+    ]
+    return sorted(infos, key=lambda s: s.credibility, reverse=True)
+
 
 @dataclass(frozen=True)
 class RetrievedChunk:

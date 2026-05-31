@@ -1,4 +1,4 @@
-"""Answer orchestration: Self-RAG graph → grade docs → stream or refuse."""
+"""Answer orchestration and prompt templates for the Self-RAG pipeline."""
 
 from __future__ import annotations
 
@@ -17,6 +17,88 @@ from ..retrieval.retriever import DEFAULT_K, RetrievedChunk
 logger = logging.getLogger(__name__)
 
 EMPTY_INDEX_MESSAGE = "No indexed sources to answer from. Run `make ingest` first."
+
+# ---------------------------------------------------------------------------
+# Prompt templates (merged from synthesis/prompts.py)
+# ---------------------------------------------------------------------------
+
+MAX_EXCERPT_CHARS = 600
+
+SYSTEM_INSTRUCTION = "You are a precise financial analyst assistant."
+
+USER_PROMPT_TEMPLATE = """Use ONLY the sources below to answer the question.
+Cite each factual claim inline with [S1], [S2], etc. matching the source
+numbers below.
+
+If the sources do not answer the question, say so explicitly. Do NOT
+extrapolate beyond what the sources state. Do NOT invent citation numbers
+that are not in the source list.
+
+Question: {query}
+
+Sources:
+{sources_block}
+
+Answer (concise, citation-rich, max ~200 words):
+"""
+
+GRADE_DOCS_TEMPLATE = """You are grading document relevance for a financial news assistant.
+
+Query: {query}
+
+Retrieved document excerpts:
+{sources_block}
+
+Do any of these documents contain information that is relevant to the query topic?
+Answer SUFFICIENT if at least one document covers the topic, even partially.
+Answer INSUFFICIENT only if the documents are entirely unrelated to the query (e.g. a sports question in a financial news index).
+Reply with exactly one word: SUFFICIENT or INSUFFICIENT."""
+
+GRADE_ANSWER_TEMPLATE = """You are grading answer groundedness.
+
+Question: {query}
+
+Sources provided:
+{sources_block}
+
+Answer given:
+{answer}
+
+Does the answer rely only on the provided sources without inventing facts not present in them?
+Reply with exactly one word: GROUNDED or HALLUCINATION."""
+
+
+def format_sources(chunks: list[RetrievedChunk]) -> str:
+    """Render chunks as numbered [S1], [S2], ... blocks for the prompt."""
+    blocks: list[str] = []
+    for i, c in enumerate(chunks, start=1):
+        date = c.published_at.strftime("%Y-%m-%d")
+        excerpt = c.text[:MAX_EXCERPT_CHARS]
+        blocks.append(f'[S{i}] {c.source}, {date}, {c.url}\n"{excerpt}"')
+    return "\n\n".join(blocks)
+
+
+def build_grade_docs_prompt(query: str, chunks: list[RetrievedChunk]) -> str:
+    return GRADE_DOCS_TEMPLATE.format(
+        query=query,
+        sources_block=format_sources(chunks),
+    )
+
+
+def build_grade_answer_prompt(query: str, chunks: list[RetrievedChunk], answer: str) -> str:
+    return GRADE_ANSWER_TEMPLATE.format(
+        query=query,
+        sources_block=format_sources(chunks),
+        answer=answer,
+    )
+
+
+def build_prompt(query: str, chunks: list[RetrievedChunk]) -> str:
+    return (
+        SYSTEM_INSTRUCTION
+        + "\n\n"
+        + USER_PROMPT_TEMPLATE.format(query=query, sources_block=format_sources(chunks))
+    )
 
 
 @dataclass(frozen=True)

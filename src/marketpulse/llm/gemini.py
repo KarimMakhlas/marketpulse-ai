@@ -11,7 +11,19 @@ import os
 from collections.abc import Iterator
 from typing import Any
 
+from .provider import LLMOverloadedError, LLMQuotaError
+
 logger = logging.getLogger(__name__)
+
+
+def _rethrow_api_error(exc: Exception) -> None:
+    """Re-raise a raw SDK exception as a typed LLM error when recognisable."""
+    msg = str(exc)
+    if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+        raise LLMQuotaError(msg) from exc
+    if "503" in msg or "UNAVAILABLE" in msg:
+        raise LLMOverloadedError(msg) from exc
+
 
 DEFAULT_MODEL = "gemini-flash-latest"
 _MISSING_KEY_MSG = (
@@ -46,10 +58,14 @@ class GeminiProvider:
     def generate(self, prompt: str) -> str:
         """Synchronous (non-streaming) generation. Used for grading calls."""
         client = self._ensure_client()
-        response = client.models.generate_content(
-            model=self._model_name,
-            contents=prompt,
-        )
+        try:
+            response = client.models.generate_content(
+                model=self._model_name,
+                contents=prompt,
+            )
+        except Exception as exc:
+            _rethrow_api_error(exc)
+            raise
         try:
             return response.text or ""
         except Exception as e:
@@ -58,17 +74,27 @@ class GeminiProvider:
 
     def generate_stream(self, prompt: str) -> Iterator[str]:
         client = self._ensure_client()
-        response = client.models.generate_content_stream(
-            model=self._model_name,
-            contents=prompt,
-        )
-        for chunk in response:
-            # `.text` can be None on the final empty chunk or a safety-filtered
-            # block; skip those quietly so the stream doesn't tear down.
-            try:
-                token = chunk.text
-            except Exception as e:  # noqa: BLE001 — SDK raises bare ValueError sometimes
-                logger.warning("skipping non-text chunk: %s", e)
-                continue
-            if token:
-                yield token
+        try:
+            response = client.models.generate_content_stream(
+                model=self._model_name,
+                contents=prompt,
+            )
+        except Exception as exc:
+            _rethrow_api_error(exc)
+            raise
+        try:
+            for chunk in response:
+                # `.text` can be None on the final empty chunk or a safety-filtered
+                # block; skip those quietly so the stream doesn't tear down.
+                try:
+                    token = chunk.text
+                except Exception as e:  # noqa: BLE001 — SDK raises bare ValueError sometimes
+                    logger.warning("skipping non-text chunk: %s", e)
+                    continue
+                if token:
+                    yield token
+        except (LLMQuotaError, LLMOverloadedError):
+            raise
+        except Exception as exc:
+            _rethrow_api_error(exc)
+            raise

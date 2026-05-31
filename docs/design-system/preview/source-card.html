@@ -1,0 +1,53 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Source Card</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .src {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-2);
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    box-shadow: var(--shadow-1);
+  }
+  .src .top { display:flex; align-items:center; gap: 10px; }
+  .src .cite {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    color: var(--accent-info); background: var(--accent-info-bg);
+    border: 1px solid var(--accent-info-ring);
+    padding: 1px 6px; border-radius: var(--radius-1);
+  }
+  .src .name { font-size: 13px; font-weight: 500; }
+  .src .meta { display:flex; gap: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); }
+  .src .meta .strong { color: var(--accent-signal); }
+  .src .excerpt { font-size: 12px; line-height: 18px; color: var(--fg-secondary); }
+  .src .link { font-size: 11px; color: var(--accent-info); font-family: var(--font-mono); }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="grid">
+    <div class="src">
+      <div class="top">
+        <span class="cite">S1</span>
+        <span class="name">Reuters</span>
+        <span class="mono-sm fg-tertiary" style="margin-left:auto">2026-04-12</span>
+      </div>
+      <div class="meta"><span>cred <span class="strong">0.95</span></span><span>relevance 0.91</span><span>recency 0.98</span></div>
+      <p class="excerpt">"NVIDIA reported stronger-than-expected revenue guidance for Q3, citing sustained data-center demand…"</p>
+      <span class="link">Open source →</span>
+    </div>
+    <div class="src" style="opacity: 0.55">
+      <div class="top">
+        <span class="cite" style="color: var(--accent-loss); background: var(--accent-loss-bg); border-color: var(--accent-loss-ring)">✕</span>
+        <span class="name">Reddit · r/wallstreetbets</span>
+        <span class="mono-sm fg-tertiary" style="margin-left:auto">rejected</span>
+      </div>
+      <div class="meta"><span>cred <span class="fg-loss">0.31</span></span><span class="fg-tertiary">below threshold 0.55</span></div>
+      <p class="excerpt fg-muted">Rejected by Critique Agent — credibility too low.</p>
+    </div>
+  </div>
+</div>
+</body></html>

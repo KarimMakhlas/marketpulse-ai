@@ -61,3 +61,33 @@ class QueryResponse(BaseModel):
     refused: bool
     doc_grade: str
     citations: list[CitationOut]
+
+
+class HealthResponse(BaseModel):
+    status: str = "ok"
+    version: str
+    model: str
+    default_k: int
+    db: bool
+    redis: bool
+
+
+class StatsResponse(BaseModel):
+    articles_indexed: int | None  # None when Chroma is unreachable
+    queries_today: int | None  # None when Postgres is unavailable
+    sources_active: int
+    db_available: bool
+
+
+class QueryLogOut(BaseModel):
+    query: str
+    doc_grade: str
+    queried_at: datetime
+    sources_count: int
+
+
+class SourceOut(BaseModel):
+    id: str
+    name: str
+    kind: str
+    credibility: float

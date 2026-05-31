@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Colors — Signal / Caution / Loss</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .acc {
+    flex: 1; border-radius: var(--radius-2);
+    padding: 14px 16px; border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: var(--radius-full); display: inline-block; box-shadow: 0 0 0 3px currentColor; box-shadow: 0 0 0 3px rgba(255,255,255,0); }
+  .acc .head { display:flex; align-items:center; gap:8px; }
+  .acc .name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+  .acc .hex  { font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); }
+  .acc .use  { font-size: 12px; line-height: 16px; color: var(--fg-secondary); }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="row" style="gap:10px; align-items:stretch">
+    <div class="acc" style="--c: #00E08F">
+      <div class="head"><span class="dot" style="background:#00E08F; box-shadow: 0 0 0 3px rgba(0,224,143,0.25)"></span><span class="name fg-signal">signal</span><span class="hex">#00E08F</span></div>
+      <span class="use">Up · healthy · kept · success</span>
+    </div>
+    <div class="acc" style="--c: #FFB020">
+      <div class="head"><span class="dot" style="background:#FFB020; box-shadow: 0 0 0 3px rgba(255,176,32,0.25)"></span><span class="name fg-caution">caution</span><span class="hex">#FFB020</span></div>
+      <span class="use">Warn · degraded · stale</span>
+    </div>
+    <div class="acc" style="--c: #FF4D6D">
+      <div class="head"><span class="dot" style="background:#FF4D6D; box-shadow: 0 0 0 3px rgba(255,77,109,0.25)"></span><span class="name fg-loss">loss</span><span class="hex">#FF4D6D</span></div>
+      <span class="use">Down · critical · rejected · hallucination</span>
+    </div>
+  </div>
+</div>
+</body></html>

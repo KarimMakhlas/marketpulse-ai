@@ -13,7 +13,7 @@ from datetime import datetime
 from aiokafka import AIOKafkaConsumer  # type: ignore[import-untyped]
 
 from .indexer import chunk_text, upsert_chunks
-from .pipeline import CONSUMER_GROUP, KAFKA_BOOTSTRAP, TOPIC
+from .kafka_config import CONSUMER_GROUP, KAFKA_BOOTSTRAP, TOPIC
 from .sources import RawArticle
 
 logger = logging.getLogger(__name__)

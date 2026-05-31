@@ -1,0 +1,31 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Status Dots & Glyphs</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-2); }
+  .dot { width: 10px; height: 10px; border-radius: 999px; box-shadow: 0 0 0 3px rgba(0,0,0,0); flex-shrink: 0; }
+  .item .lbl { font-size: 12px; color: var(--fg-secondary); }
+  .item .val { font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); margin-left: auto; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(0,224,143,0.4); } 50% { box-shadow: 0 0 0 6px rgba(0,224,143,0); } }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="grid">
+    <div class="item"><span class="dot" style="background:#00E08F; animation: pulse 1.8s ease-out infinite"></span><span class="lbl">Live</span><span class="val">●</span></div>
+    <div class="item"><span class="dot" style="background:#00E08F"></span><span class="lbl">Healthy</span><span class="val">signal</span></div>
+    <div class="item"><span class="dot" style="background:#FFB020"></span><span class="lbl">Degraded</span><span class="val">caution</span></div>
+    <div class="item"><span class="dot" style="background:#FF4D6D"></span><span class="lbl">Critical</span><span class="val">loss</span></div>
+    <div class="item"><span class="dot" style="background:#7C5CFF"></span><span class="lbl">In flight</span><span class="val">ai</span></div>
+    <div class="item"><span class="dot" style="background:#4DA3FF"></span><span class="lbl">Ingesting</span><span class="val">info</span></div>
+    <div class="item"><span class="dot" style="background:#5B6473"></span><span class="lbl">Idle</span><span class="val">muted</span></div>
+    <div class="item">
+      <span style="font-family:var(--font-mono); font-size:18px; color:var(--accent-ai); width:10px; text-align:center">▍</span>
+      <span class="lbl">Token cursor</span>
+      <span class="val">▍ U+258D</span>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,39 @@
+/* Shared preview-card chrome for the Design System tab.
+   Every card imports colors_and_type.css then this file. */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+  color: var(--fg-primary);
+  font-family: var(--font-sans);
+}
+
+.card {
+  box-sizing: border-box;
+  padding: 20px 24px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card.dense {
+  padding: 16px 20px;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.row.wrap {
+  flex-wrap: wrap;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}

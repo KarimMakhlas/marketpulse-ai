@@ -1,7 +1,10 @@
 """FastAPI application factory for MarketPulse AI (v0.4).
 
 Routes:
-  GET  /health                  liveness probe (no auth)
+  GET  /health                  liveness + runtime config (no auth)
+  GET  /stats                   corpus + usage counters for the dashboard (no auth)
+  GET  /sources                 ingestion source set, credibility-weighted (no auth)
+  GET  /queries                 recent query-log entries (auth)
   POST /auth/register           create a user
   POST /auth/token              OAuth2 password grant -> JWT
   POST /query                   authenticated RAG answer (JSON)
@@ -15,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -34,46 +38,54 @@ from .. import __version__
 from ..db import (
     DBUnavailableError,
     UserAlreadyExistsError,
+    count_queries_today,
     create_user,
+    db_available,
     ensure_schema,
     get_user,
+    recent_queries,
 )
-from ..llm.provider import LLMProvider
+from ..ingestion.indexer import collection_count
+from ..llm.gemini import DEFAULT_MODEL
+from ..llm.provider import LLMOverloadedError, LLMProvider, LLMQuotaError
+from ..retrieval.retriever import DEFAULT_K, list_sources
 from ..synthesis.answer import AnswerStream, answer
 from .deps import CurrentUser, Provider, get_provider, limiter
-from .schemas import CitationOut, QueryRequest, QueryResponse, Token, UserCreate, UserOut
+from .schemas import (
+    CitationOut,
+    HealthResponse,
+    QueryLogOut,
+    QueryRequest,
+    QueryResponse,
+    SourceOut,
+    StatsResponse,
+    Token,
+    UserCreate,
+    UserOut,
+)
 from .security import create_access_token, decode_access_token, hash_password, verify_password
 
 logger = logging.getLogger(__name__)
 
-# Vendored design-system web UI (src/marketpulse/web/). Mounted at /app when present.
-WEB_DIR = Path(__file__).resolve().parent.parent / "web"
-
-
-def _is_quota_error(msg: str) -> bool:
-    return "429" in msg or "RESOURCE_EXHAUSTED" in msg
-
-
-def _is_overloaded_error(msg: str) -> bool:
-    return "503" in msg or "UNAVAILABLE" in msg
+# Frontend source lives at frontend/src/ (project root). Mounted at /app when present.
+WEB_DIR = Path(__file__).resolve().parents[3] / "frontend" / "src"
 
 
 def _map_llm_error(exc: Exception) -> HTTPException:
-    """Translate a provider error into an HTTP status the client can act on."""
-    msg = str(exc)
-    if _is_quota_error(msg):
+    """Translate a typed provider error into an HTTP status the client can act on."""
+    if isinstance(exc, LLMQuotaError):
         return HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="LLM free-tier quota exhausted (429). Try again after the daily reset.",
         )
-    if _is_overloaded_error(msg):
+    if isinstance(exc, LLMOverloadedError):
         return HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="LLM temporarily overloaded (503). Retry in a few seconds.",
         )
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail=f"Generation failed: {msg}",
+        detail=f"Generation failed: {exc}",
     )
 
 
@@ -102,9 +114,47 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    @app.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok", "version": __version__}
+    @app.get("/health", response_model=HealthResponse)
+    def health() -> HealthResponse:
+        return HealthResponse(
+            version=__version__,
+            model=DEFAULT_MODEL,
+            default_k=DEFAULT_K,
+            db=db_available(),
+            redis=bool(os.environ.get("REDIS_URL")),
+        )
+
+    @app.get("/stats", response_model=StatsResponse)
+    def stats() -> StatsResponse:
+        """Lightweight corpus + usage counters for the dashboard (no auth)."""
+        return StatsResponse(
+            articles_indexed=collection_count(),
+            queries_today=count_queries_today(),
+            sources_active=len(list_sources()),
+            db_available=db_available(),
+        )
+
+    @app.get("/sources", response_model=list[SourceOut])
+    def sources() -> list[SourceOut]:
+        """The canonical set of ingestion sources the pipeline pulls from (no auth)."""
+        return [
+            SourceOut(id=s.id, name=s.name, kind=s.kind, credibility=s.credibility)
+            for s in list_sources()
+        ]
+
+    @app.get("/queries", response_model=list[QueryLogOut])
+    def queries(user: CurrentUser, limit: int = 50) -> list[QueryLogOut]:
+        """Recent query-log entries, newest first. Requires auth."""
+        capped = max(1, min(limit, 200))
+        return [
+            QueryLogOut(
+                query=r.query,
+                doc_grade=r.doc_grade,
+                queried_at=r.queried_at,
+                sources_count=r.sources_count,
+            )
+            for r in recent_queries(capped)
+        ]
 
     @app.post("/auth/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
     @limiter.limit("10/minute")

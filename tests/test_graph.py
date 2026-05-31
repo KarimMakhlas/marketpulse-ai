@@ -2,47 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from datetime import UTC, datetime
 from unittest.mock import patch
 
+from conftest import FakeProvider, make_chunk
 from marketpulse.retrieval.retriever import RetrievedChunk
 from marketpulse.synthesis.answer import AnswerStream, _citation_from_chunk
-
-# ---------------------------------------------------------------------------
-# Helpers / fixtures
-# ---------------------------------------------------------------------------
-
-
-def _make_chunk(score: float = 0.9, source: str = "ft") -> RetrievedChunk:
-    return RetrievedChunk(
-        text="Markets rose on strong earnings.",
-        source=source,
-        url="https://ft.com/article/1",
-        title="Markets rise",
-        published_at=datetime(2026, 5, 28, tzinfo=UTC),
-        similarity=score,
-        recency=0.9,
-        credibility=1.0,
-        score=score,
-    )
-
-
-class FakeLLMProvider:
-    """Minimal fake provider — generate() returns a configurable string."""
-
-    def __init__(
-        self, grade_response: str = "SUFFICIENT", stream_text: str = "Answer text."
-    ) -> None:
-        self._grade_response = grade_response
-        self._stream_text = stream_text
-
-    def generate(self, prompt: str) -> str:  # noqa: ARG002
-        return self._grade_response
-
-    def generate_stream(self, prompt: str) -> Iterator[str]:  # noqa: ARG002
-        yield self._stream_text
-
 
 # ---------------------------------------------------------------------------
 # _citation_from_chunk
@@ -50,7 +14,7 @@ class FakeLLMProvider:
 
 
 def test_citation_from_chunk_sets_marker() -> None:
-    chunk = _make_chunk()
+    chunk = make_chunk()
     citation = _citation_from_chunk(1, chunk)
     assert citation.marker == "[S1]"
     assert citation.source == "ft"
@@ -58,17 +22,7 @@ def test_citation_from_chunk_sets_marker() -> None:
 
 def test_citation_from_chunk_excerpt_truncated() -> None:
     long_text = "x" * 200
-    chunk = RetrievedChunk(
-        text=long_text,
-        source="ft",
-        url="https://ft.com/1",
-        title="T",
-        published_at=datetime(2026, 1, 1, tzinfo=UTC),
-        similarity=0.9,
-        recency=0.9,
-        credibility=1.0,
-        score=0.9,
-    )
+    chunk = make_chunk(2, text=long_text)
     citation = _citation_from_chunk(2, chunk)
     assert len(citation.excerpt) <= 120
 
@@ -83,8 +37,8 @@ def _mock_search(chunks: list[RetrievedChunk]):  # type: ignore[no-untyped-def]
 
 
 def test_answer_returns_stream_when_sufficient() -> None:
-    chunks = [_make_chunk()]
-    provider = FakeLLMProvider(grade_response="SUFFICIENT", stream_text="Hello world.")
+    chunks = [make_chunk()]
+    provider = FakeProvider(tokens=["Hello world."], grade="SUFFICIENT")
 
     with _mock_search(chunks):
         from marketpulse.synthesis.answer import answer
@@ -98,8 +52,8 @@ def test_answer_returns_stream_when_sufficient() -> None:
 
 
 def test_answer_refuses_when_insufficient() -> None:
-    chunks = [_make_chunk()]
-    provider = FakeLLMProvider(grade_response="INSUFFICIENT")
+    chunks = [make_chunk()]
+    provider = FakeProvider(grade="INSUFFICIENT")
 
     with _mock_search(chunks):
         from marketpulse.synthesis.answer import answer
@@ -113,7 +67,7 @@ def test_answer_refuses_when_insufficient() -> None:
 
 
 def test_answer_returns_empty_index_message_when_no_chunks() -> None:
-    provider = FakeLLMProvider()
+    provider = FakeProvider()
 
     with _mock_search([]):
         from marketpulse.synthesis.answer import answer
@@ -127,8 +81,8 @@ def test_answer_returns_empty_index_message_when_no_chunks() -> None:
 
 
 def test_answer_streams_tokens_when_sufficient() -> None:
-    chunks = [_make_chunk()]
-    provider = FakeLLMProvider(grade_response="SUFFICIENT", stream_text="token1")
+    chunks = [make_chunk()]
+    provider = FakeProvider(tokens=["token1"], grade="SUFFICIENT")
 
     with _mock_search(chunks):
         from marketpulse.synthesis.answer import answer
@@ -151,14 +105,14 @@ def test_grade_docs_node_sufficient() -> None:
     state: GraphState = {
         "query": "What happened to markets?",
         "k": 1,
-        "chunks": [_make_chunk()],
+        "chunks": [make_chunk()],
         "citations": [],
         "doc_grade": "",
         "prompt": "",
         "refused": False,
         "refusal_reason": "",
     }
-    provider = FakeLLMProvider(grade_response="SUFFICIENT")
+    provider = FakeProvider(grade="SUFFICIENT")
     result = grade_docs_node(state, provider=provider)
     assert result["doc_grade"] == "sufficient"
 
@@ -170,14 +124,14 @@ def test_grade_docs_node_insufficient() -> None:
     state: GraphState = {
         "query": "swallow velocity?",
         "k": 1,
-        "chunks": [_make_chunk()],
+        "chunks": [make_chunk()],
         "citations": [],
         "doc_grade": "",
         "prompt": "",
         "refused": False,
         "refusal_reason": "",
     }
-    provider = FakeLLMProvider(grade_response="INSUFFICIENT")
+    provider = FakeProvider(grade="INSUFFICIENT")
     result = grade_docs_node(state, provider=provider)
     assert result["doc_grade"] == "insufficient"
 
@@ -196,7 +150,7 @@ def test_grade_docs_node_empty_chunks_returns_insufficient() -> None:
         "refused": False,
         "refusal_reason": "",
     }
-    provider = FakeLLMProvider()
+    provider = FakeProvider()
     result = grade_docs_node(state, provider=provider)
     assert result["doc_grade"] == "insufficient"
     assert result["refused"] is True

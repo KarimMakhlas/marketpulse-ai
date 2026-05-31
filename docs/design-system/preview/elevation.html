@@ -1,0 +1,42 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Elevation / Shadow</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid4 { display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .surf {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-2);
+    padding: 14px 16px;
+    height: 76px;
+    box-sizing: border-box;
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--fg-secondary); }
+  .val { font-family: var(--font-mono); font-size: 10px; color: var(--fg-tertiary); }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="grid4">
+    <div class="surf" style="box-shadow: var(--shadow-1)">
+      <span class="lbl">shadow-1</span>
+      <span class="val">resting card · inset hi-light</span>
+    </div>
+    <div class="surf" style="box-shadow: var(--shadow-2)">
+      <span class="lbl">shadow-2</span>
+      <span class="val">popover · dropdown · ⌘K palette</span>
+    </div>
+    <div class="surf" style="box-shadow: var(--shadow-3)">
+      <span class="lbl">shadow-3</span>
+      <span class="val">modal · large floating</span>
+    </div>
+    <div class="surf" style="box-shadow: var(--shadow-glow-ai); border-color: rgba(124,92,255,0.4)">
+      <span class="lbl fg-ai">shadow-glow-ai</span>
+      <span class="val">active agent during streaming</span>
+    </div>
+  </div>
+  <span class="mono-sm fg-tertiary">In dark mode, elevation is bg-color step + 1px inset highlight, not drop shadow.</span>
+</div>
+</body></html>

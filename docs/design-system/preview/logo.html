@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Logo & Wordmark</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .specimen { display:flex; align-items:center; gap: 40px; padding: 12px 0; }
+  .mark-wrap { display:flex; align-items:center; gap: 18px; }
+  .gradient { background: linear-gradient(135deg, #7C5CFF 0%, #4DA3FF 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="specimen">
+    <div class="mark-wrap" style="color: var(--fg-primary)">
+      <img src="../assets/mark.svg" alt="MarketPulse mark" width="40" height="40" style="filter: invert(1) brightness(0.95);">
+    </div>
+    <div class="mark-wrap" style="color: var(--fg-primary)">
+      <img src="../assets/wordmark.svg" alt="MarketPulse AI" height="32" style="filter: invert(1) brightness(0.95);">
+    </div>
+    <div class="mark-wrap">
+      <span style="font-family: var(--font-sans); font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">
+        <span class="gradient">MarketPulse</span>
+        <span class="mono" style="font-size:15px; color:var(--fg-tertiary); letter-spacing:0.04em; margin-left:6px">AI</span>
+      </span>
+    </div>
+  </div>
+  <span class="mono-sm fg-tertiary">Pulse waveform crossing a chart bar · wordmark Geist 600 -0.02em · brand-gradient applied to the wordmark stroke only on hero placements.</span>
+</div>
+</body></html>

@@ -4,7 +4,7 @@ import json
 from datetime import UTC, datetime
 
 from marketpulse.ingestion.consumer import msg_to_article
-from marketpulse.ingestion.pipeline import CONSUMER_GROUP, KAFKA_BOOTSTRAP, POLL_INTERVAL, TOPIC
+from marketpulse.ingestion.kafka_config import CONSUMER_GROUP, KAFKA_BOOTSTRAP, POLL_INTERVAL, TOPIC
 from marketpulse.ingestion.producer import article_to_msg
 from marketpulse.ingestion.sources import RawArticle
 

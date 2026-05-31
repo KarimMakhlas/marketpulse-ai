@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Agent step row</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .step {
+    display: grid;
+    grid-template-columns: 28px 110px 1fr 80px 60px;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-row);
+  }
+  .step:last-child { border-bottom: none; }
+  .ico {
+    width: 24px; height: 24px;
+    background: var(--accent-ai-bg);
+    border: 1px solid var(--accent-ai-ring);
+    border-radius: var(--radius-1);
+    color: var(--accent-ai);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ico.done { background: var(--accent-signal-bg); border-color: var(--accent-signal-ring); color: var(--accent-signal); }
+  .ico.active {
+    background: var(--accent-ai-bg);
+    box-shadow: 0 0 0 1px rgba(124,92,255,0.4), 0 0 12px -2px rgba(124,92,255,0.45);
+    color: var(--accent-ai);
+  }
+  .label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; color: var(--accent-ai); }
+  .label.muted { color: var(--fg-tertiary); }
+  .desc { font-size: 12px; color: var(--fg-secondary); }
+  .desc strong { color: var(--fg-primary); font-weight: 500; }
+  .dur { font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); text-align: right; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 1.2s linear infinite; }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="step">
+    <div class="ico done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <span class="label">Router</span>
+    <span class="desc">Classified as <strong>synthesis</strong></span>
+    <span class="dur">120 ms</span>
+    <span class="dur">$0.0001</span>
+  </div>
+  <div class="step">
+    <div class="ico done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <span class="label">Retrieval</span>
+    <span class="desc">Retrieved <strong>12 documents</strong></span>
+    <span class="dur">240 ms</span>
+    <span class="dur">$0.0003</span>
+  </div>
+  <div class="step">
+    <div class="ico done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <span class="label">Critique</span>
+    <span class="desc">Kept <strong class="fg-signal">5 reliable</strong> · rejected <strong class="fg-loss">7</strong></span>
+    <span class="dur">410 ms</span>
+    <span class="dur">$0.0008</span>
+  </div>
+  <div class="step">
+    <div class="ico active"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="9" stroke-opacity="0.3"/><path d="M21 12 A9 9 0 0 0 12 3"/></svg></div>
+    <span class="label">Synthesis</span>
+    <span class="desc">Generating answer…</span>
+    <span class="dur">980 ms</span>
+    <span class="dur">$0.0024</span>
+  </div>
+  <div class="step" style="opacity:0.45">
+    <div class="ico" style="background:var(--bg-card); border-color:var(--border-subtle); color:var(--fg-muted)"></div>
+    <span class="label muted">Grader</span>
+    <span class="desc">Pending</span>
+    <span class="dur">—</span>
+    <span class="dur">—</span>
+  </div>
+</div>
+</body></html>

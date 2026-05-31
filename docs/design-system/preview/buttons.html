@@ -1,0 +1,50 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Buttons</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  .btn {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: var(--radius-1);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--fg-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background var(--dur-snap) var(--ease-out), border-color var(--dur-snap) var(--ease-out);
+  }
+  .btn-primary { background: var(--fg-primary); color: var(--bg-base); }
+  .btn-primary:hover { background: #fff; }
+  .btn-ai { background: var(--accent-ai); color: #fff; }
+  .btn-ai:hover { background: #8E72FF; }
+  .btn-secondary { background: var(--bg-card); border-color: var(--border-default); }
+  .btn-secondary:hover { background: var(--bg-card-hover); }
+  .btn-ghost { color: var(--fg-secondary); }
+  .btn-ghost:hover { color: var(--fg-primary); background: var(--bg-card); }
+  .btn-danger { background: var(--accent-loss-bg); border-color: var(--accent-loss-ring); color: var(--accent-loss); }
+  .btn-icon { width: 32px; padding: 0; justify-content: center; background: var(--bg-card); border-color: var(--border-default); }
+  .kbd { font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); margin-left: 4px; padding: 1px 5px; border: 1px solid var(--border-default); border-radius: 3px; }
+</style>
+</head><body>
+<div class="card dense">
+  <div class="row wrap" style="gap:10px">
+    <button class="btn btn-primary">Send query <span class="kbd" style="color: var(--bg-base); border-color: rgba(7,9,12,0.2)">↵</span></button>
+    <button class="btn btn-ai">Run evaluation</button>
+    <button class="btn btn-secondary">Cancel</button>
+    <button class="btn btn-ghost">View trace →</button>
+    <button class="btn btn-danger">Acknowledge alert</button>
+    <button class="btn btn-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-4.3-4.3"/><circle cx="11" cy="11" r="7"/></svg>
+    </button>
+  </div>
+  <span class="mono-sm fg-tertiary">32px height · 4px radius · 13/13 medium · 150ms snap on hover · press scale(.98) 80ms</span>
+</div>
+</body></html>

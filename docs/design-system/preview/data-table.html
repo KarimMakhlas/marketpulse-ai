@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Data Table</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_card.css">
+<style>
+  table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border-row); }
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-tertiary);
+    border-bottom: 1px solid var(--border-default);
+  }
+  td { font-size: 13px; color: var(--fg-primary); }
+  td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  td .pill { display:inline-flex; align-items:center; gap: 5px; padding: 1px 7px; height: 18px; border-radius: 999px; font-family:var(--font-mono); font-size:10px; }
+  td .ok { background: var(--accent-signal-bg); color: var(--accent-signal); border: 1px solid var(--accent-signal-ring); }
+  td .warn { background: var(--accent-caution-bg); color: var(--accent-caution); border: 1px solid var(--accent-caution-ring); }
+  tbody tr:hover { background: var(--bg-card-hover); }
+</style>
+</head><body>
+<div class="card dense">
+  <table>
+    <thead><tr><th>Date</th><th>Query</th><th>Conf.</th><th>Halluc.</th><th>Latency</th><th>Trace</th></tr></thead>
+    <tbody>
+      <tr><td class="num fg-tertiary">2026-04-12 14:32</td><td>Did NVIDIA beat expectations?</td><td class="num fg-signal">0.86</td><td><span class="pill ok">No</span></td><td class="num">1.8 s</td><td class="num fg-ai">tr_8f3a…</td></tr>
+      <tr><td class="num fg-tertiary">2026-04-12 13:11</td><td>What changed in Apple's 10-Q filing?</td><td class="num fg-caution">0.74</td><td><span class="pill ok">No</span></td><td class="num">2.4 s</td><td class="num fg-ai">tr_44e2…</td></tr>
+      <tr><td class="num fg-tertiary">2026-04-12 11:48</td><td>Risk factors in TSLA delivery miss?</td><td class="num fg-signal">0.91</td><td><span class="pill warn">Low</span></td><td class="num">1.4 s</td><td class="num fg-ai">tr_91c0…</td></tr>
+    </tbody>
+  </table>
+</div>
+</body></html>
